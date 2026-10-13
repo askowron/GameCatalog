@@ -1,0 +1,8 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/GameCatalog.App/GameCatalog.App.csproj" />
+    <Project Path="src/GameCatalog.Core/GameCatalog.Core.csproj" />
+    <Project Path="src/GameCatalog.Scripting/GameCatalog.Scripting.csproj" />
+    <Project Path="src/GameCatalog.Storage/GameCatalog.Storage.csproj" />
+  </Folder>
+</Solution>

@@ -1,0 +1,24 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <ProjectReference Include="..\GameCatalog.Core\GameCatalog.Core.csproj" />
+    <ProjectReference Include="..\GameCatalog.Storage\GameCatalog.Storage.csproj" />
+    <ProjectReference Include="..\GameCatalog.Scripting\GameCatalog.Scripting.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="Resources\*.bmp">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net6.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <UseWindowsForms>true</UseWindowsForms>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <AssemblyVersion>26.9.22.26</AssemblyVersion>
+  </PropertyGroup>
+
+</Project>
