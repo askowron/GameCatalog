@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<AntMovieCatalog Format="43" Version="4.2.3 (2023-09-18)" Date="2024-01-01">
+  <Catalog>
+    <Properties Owner="test"/>
+    <Contents>
+      <Movie Number="7" Checked="True" MediaLabel="A1" MediaType="DVD" Source="Shop" Borrower=""
+             UserRating="80" Rating="72" OriginalTitle="Blade Runner" TranslatedTitle="Łowca androidów"
+             Director="Ridley Scott" Producer="Warner" Writer="Fancher" Composer="Vangelis"
+             Actors="Harrison Ford" Country="USA" Category="Sci-Fi" Year="1982" Length="150"
+             URL="http://example.com" Description="Neo-noir" Comments="Classic" FilePath="C:\br.mkv"
+             VideoFormat="XviD" Languages="English" Subtitles="Polish" Size="700" DateWatched="2020-05-06"/>
+      <Movie Number="8" TranslatedTitle="Tylko polski"/>
+    </Contents>
+  </Catalog>
+</AntMovieCatalog>

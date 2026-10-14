@@ -2,10 +2,11 @@ using System.Text;
 using GameCatalog.Core.Catalog;
 using GameCatalog.Core.Fields;
 using GameCatalog.Core.Models;
+using GameCatalog.Storage.Csv;
 
 namespace GameCatalog.Storage;
 
-/// <summary>Eksport/import CSV + eksport HTML (odpowiednik AMC export.pas), w wersji growej.</summary>
+/// <summary>CSV export/import + HTML export (counterpart of AMC export.pas), game edition.</summary>
 public static class CatalogTransfer
 {
     private static string Csv(string s, char delimiter)
@@ -23,8 +24,8 @@ public static class CatalogTransfer
             sb.AppendLine(string.Join(delimiter, g.Number, Csv(g.Title, delimiter), Csv(g.LocalizedTitle, delimiter), Csv(g.Developer, delimiter),
                 Csv(g.Publisher, delimiter), g.ReleaseYear, Csv(g.Genre, delimiter), Csv(g.Platform, delimiter),
                 CatalogLabels.Current.Status(g.CompletionStatus),
-                g.UserRating < 0 ? "" : (g.UserRating / 10.0).ToString("0.0"),
-                g.CriticRating < 0 ? "" : (g.CriticRating / 10.0).ToString("0.0"),
+                GameFieldValues.Rating(g.UserRating),
+                GameFieldValues.Rating(g.CriticRating),
                 g.PlaytimeHours, Csv(g.Store, delimiter), Csv(g.Engine, delimiter), Csv(g.Description, delimiter)));
         File.WriteAllText(path, sb.ToString(), Encoding.UTF8);
     }
@@ -32,22 +33,22 @@ public static class CatalogTransfer
     public static List<Game> ImportCsv(string path, int startNumber, char delimiter = ';')
     {
         var result = new List<Game>();
-        var lines = File.ReadAllLines(path, Encoding.UTF8);
+        using var reader = new StreamReader(path, Encoding.UTF8);
         int n = startNumber;
-        foreach (var line in lines.Skip(1))
+        foreach (var p in CsvReader.ReadRecords(reader, delimiter).Skip(1))
         {
-            if (string.IsNullOrWhiteSpace(line)) continue;
-            var p = line.Split(delimiter);
-            if (p.Length < 2) continue;
+            if (p.Length < 2 || string.IsNullOrWhiteSpace(p[1])) continue;
+            string At(int i) => i < p.Length ? p[i].Trim() : "";
             result.Add(new Game
             {
                 Number = n++,
-                Title = p.ElementAtOrDefault(1)?.Trim('"') ?? "",
-                Developer = p.ElementAtOrDefault(3)?.Trim('"') ?? "",
-                Publisher = p.ElementAtOrDefault(4)?.Trim('"') ?? "",
-                ReleaseYear = int.TryParse(p.ElementAtOrDefault(5), out var y) ? y : 0,
-                Genre = p.ElementAtOrDefault(6)?.Trim('"') ?? "",
-                Platform = p.ElementAtOrDefault(7)?.Trim('"') ?? "PC",
+                Title = At(1),
+                LocalizedTitle = At(2),
+                Developer = At(3),
+                Publisher = At(4),
+                ReleaseYear = int.TryParse(At(5), out var y) ? y : 0,
+                Genre = At(6),
+                Platform = At(7).Length > 0 ? At(7) : "PC",
                 DateAdded = DateTime.Today,
             });
         }
@@ -63,12 +64,12 @@ public static class CatalogTransfer
         sb.AppendLine($"<h1>{System.Net.WebUtility.HtmlEncode(title)}</h1>");
         sb.AppendLine("<table><tr><th>#</th><th>Tytuł</th><th>Developer</th><th>Rok</th><th>Gatunek</th><th>Platforma</th><th>Status</th><th>Ocena</th><th>Czas (h)</th></tr>");
         foreach (var g in games)
-            sb.AppendLine($"<tr><td>{g.Number}</td><td>{System.Net.WebUtility.HtmlEncode(g.Title)}</td><td>{System.Net.WebUtility.HtmlEncode(g.Developer)}</td><td>{g.ReleaseYear}</td><td>{System.Net.WebUtility.HtmlEncode(g.Genre)}</td><td>{System.Net.WebUtility.HtmlEncode(g.Platform)}</td><td>{CatalogLabels.Current.Status(g.CompletionStatus)}</td><td>{(g.UserRating < 0 ? "–" : (g.UserRating / 10.0).ToString("0.0"))}</td><td>{g.PlaytimeHours}</td></tr>");
+            sb.AppendLine($"<tr><td>{g.Number}</td><td>{System.Net.WebUtility.HtmlEncode(g.Title)}</td><td>{System.Net.WebUtility.HtmlEncode(g.Developer)}</td><td>{g.ReleaseYear}</td><td>{System.Net.WebUtility.HtmlEncode(g.Genre)}</td><td>{System.Net.WebUtility.HtmlEncode(g.Platform)}</td><td>{CatalogLabels.Current.Status(g.CompletionStatus)}</td><td>{GameFieldValues.Rating(g.UserRating)}</td><td>{g.PlaytimeHours}</td></tr>");
         sb.AppendLine("</table></body></html>");
         File.WriteAllText(path, sb.ToString(), Encoding.UTF8);
     }
 
-    /// <summary>Import z folderu: każdy podfolder/plik pasujący do wzorców tworzy wpis gry (odpowiednik AMC import2).</summary>
+    /// <summary>Import from a folder: every subfolder/file matching the patterns becomes a game entry (counterpart of AMC import2).</summary>
     public static List<Game> ImportFromFolder(string folder, int startNumber, string? patterns = null)
     {
         var pats = (patterns ?? "*.exe").Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);

@@ -710,10 +710,12 @@ public sealed class MainForm : Form
     {
         _store = new SqliteGameCatalogStore(path);
         _dbPath = path;
-        var (games, loans) = _store.LoadAll(_model);
-        _model.ReplaceAll(games);
+        var data = _store.LoadAll();
+        _model.ReplaceAll(data.Games);
+        _model.CustomFieldDefs.Clear();
+        _model.CustomFieldDefs.AddRange(data.CustomFieldDefs);
         _loans.Clear();
-        _loans.AddRange(loans);
+        _loans.AddRange(data.Loans);
         if (_model.Games.Count == 0)
         {
             foreach (var g in SampleDataFactory.CreateSamples()) _model.Add(g);

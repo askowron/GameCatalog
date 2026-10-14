@@ -5,8 +5,9 @@ using Microsoft.Data.Sqlite;
 namespace GameCatalog.Storage;
 
 /// <summary>
-/// Magazyn SQLite — odpowiednik AMC zapis/odczyt katalogu (XML/SQL),
-/// ale w wersji growej: jedna baza .db z tabelami Games/Extras/Loans/CustomFields.
+/// SQLite catalog store — counterpart of AMC catalog load/save (XML/SQL), game edition:
+/// one .gc database with Games / Extras / Loans / CustomFieldDefs / CustomValues tables.
+/// SaveAll rewrites the whole catalog in a single transaction.
 /// </summary>
 public sealed class SqliteGameCatalogStore
 {
@@ -76,16 +77,16 @@ CREATE TABLE IF NOT EXISTS CustomValues(
         return DateTime.TryParse(s, out var d) ? d : null;
     }
 
-    // ---------- zapis całego katalogu (jak AMC Save) ----------
-    public void SaveAll(GameList model, IEnumerable<LoanRecord> loans)
+    // ---------- save the whole catalog (like AMC Save) ----------
+    public void SaveAll(GameList list, IEnumerable<LoanRecord> loans)
     {
         Initialize();
         using var c = Open();
         using var tx = c.BeginTransaction();
 
-        foreach (var g in model.Games) UpsertGame(c, g);
-        // usuń gry, których już nie ma
-        var keep = string.Join(",", model.Games.Select(g => g.Number).DefaultIfEmpty(-1));
+        foreach (var g in list.Games) UpsertGame(c, g);
+        // remove games that no longer exist
+        var keep = string.Join(",", list.Games.Select(g => g.Number).DefaultIfEmpty(-1));
         using (var del = c.CreateCommand())
         {
             del.Transaction = tx;
@@ -96,14 +97,14 @@ CREATE TABLE IF NOT EXISTS CustomValues(
             del.CommandText = $"DELETE FROM CustomValues WHERE GameNumber NOT IN ({keep})";
             del.ExecuteNonQuery();
         }
-        // defs pól własnych
+        // custom field definitions
         using (var del = c.CreateCommand())
         {
             del.Transaction = tx;
             del.CommandText = "DELETE FROM CustomFieldDefs";
             del.ExecuteNonQuery();
         }
-        foreach (var d in model.CustomFieldDefs)
+        foreach (var d in list.CustomFieldDefs)
         {
             using var cmd = c.CreateCommand();
             cmd.Transaction = tx;
@@ -115,7 +116,7 @@ CREATE TABLE IF NOT EXISTS CustomValues(
             cmd.Parameters.AddWithValue("$d", d.DefaultValue);
             cmd.ExecuteNonQuery();
         }
-        // wypożyczenia: pełne odświeżenie
+        // loans: full refresh
         using (var del = c.CreateCommand())
         {
             del.Transaction = tx;
@@ -237,8 +238,8 @@ ON CONFLICT(Number) DO UPDATE SET Checked=excluded.Checked,ColorTag=excluded.Col
         }
     }
 
-    // ---------- odczyt (jak AMC Load) ----------
-    public (List<Game> Games, List<LoanRecord> Loans) LoadAll(GameList model)
+    // ---------- load (like AMC Load) ----------
+    public CatalogData LoadAll()
     {
         Initialize();
         var games = new List<Game>();
@@ -328,13 +329,13 @@ ON CONFLICT(Number) DO UPDATE SET Checked=excluded.Checked,ColorTag=excluded.Col
             vr.Close();
         }
 
-        model.CustomFieldDefs.Clear();
+        var defs = new List<CustomFieldDefinition>();
         using var dc = c.CreateCommand();
         dc.CommandText = "SELECT * FROM CustomFieldDefs ORDER BY Tag";
         using var dr = dc.ExecuteReader();
         while (dr.Read())
         {
-            model.CustomFieldDefs.Add(new CustomFieldDefinition
+            defs.Add(new CustomFieldDefinition
             {
                 Tag = dr["Tag"].ToString() ?? "",
                 Name = dr["Name"].ToString() ?? "",
@@ -362,6 +363,6 @@ ON CONFLICT(Number) DO UPDATE SET Checked=excluded.Checked,ColorTag=excluded.Col
                              DateTime.TryParse(lr["ReturnDate"].ToString(), out var rd) ? rd : null,
             });
         }
-        return (games, loans);
+        return new CatalogData(games, defs, loans);
     }
 }
