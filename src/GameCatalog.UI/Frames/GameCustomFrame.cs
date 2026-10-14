@@ -9,6 +9,7 @@ public partial class GameCustomFrame : UserControl, IGameFrame
     private readonly Dictionary<string, Control> _editors = new(StringComparer.OrdinalIgnoreCase);
     private IReadOnlyList<CustomFieldDefinition> _definitions = Array.Empty<CustomFieldDefinition>();
     private Game? _game;
+    private readonly Dictionary<string, string> _baseline = new(StringComparer.OrdinalIgnoreCase);
     private bool _loading;
 
     public GameCustomFrame()
@@ -64,17 +65,18 @@ public partial class GameCustomFrame : UserControl, IGameFrame
                     case CheckBox c: c.Checked = YesNo.Parse(value); break;
                     case NumericUpDown n:
                         // Stored invariant; the Polish-only version stored the current culture ("12,5").
-                        bool parsed = decimal.TryParse(value, System.Globalization.NumberStyles.Number, System.Globalization.CultureInfo.InvariantCulture, out var d)
-                                      || decimal.TryParse(value, out d);
+                        bool parsed = decimal.TryParse(value.Replace(',', '.'), System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out var d);
                         n.Value = Math.Clamp(parsed ? d : 0, n.Minimum, n.Maximum);
                         break;
                     case DateTimePicker p:
-                        bool has = DateTime.TryParse(value, out var date);
+                        bool has = DateTime.TryParse(value, System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out var date)
+                                   || DateTime.TryParse(value, out date);
                         p.Value = has ? date : DateTime.Today;
                         p.Checked = has;
                         break;
                     case var other: other.Text = value; break;
                 }
+                _baseline[def.Tag] = CommittedForm(_editors[def.Tag]);
             }
         }
         finally { _loading = false; }
@@ -88,19 +90,24 @@ public partial class GameCustomFrame : UserControl, IGameFrame
     private void Commit(string tag)
     {
         if (_loading || _game is null || !_editors.TryGetValue(tag, out var editor)) return;
-        string value = editor switch
-        {
-            CheckBox c => c.Checked ? YesNo.StoredTrue : "",
-            NumericUpDown n => n.Value.ToString(System.Globalization.CultureInfo.InvariantCulture),
-            DateTimePicker p => p.Checked ? p.Value.ToString("yyyy-MM-dd") : "",
-            _ => editor.Text,
-        };
+        string value = CommittedForm(editor);
         string old = _game.CustomValues.TryGetValue(tag, out var o) ? o : "";
-        bool same = editor is CheckBox ? YesNo.Parse(old) == (value.Length > 0) : old == value;
+        // Untouched editors keep the stored text as is (e.g. legacy "12,5", defaults, empty numbers).
+        bool same = editor is CheckBox ? YesNo.Parse(old) == (value.Length > 0)
+            : value == _baseline.GetValueOrDefault(tag, old);
         if (same) return;
+        _baseline[tag] = value;
         GameFieldWriter.Set(_game, GameFieldWriter.CustomPrefix + tag, value);
         Modified?.Invoke(this, new FrameModifiedEventArgs(GameFieldWriter.CustomPrefix + tag));
     }
+
+    private static string CommittedForm(Control editor) => editor switch
+    {
+        CheckBox c => c.Checked ? YesNo.StoredTrue : "",
+        NumericUpDown n => n.Value.ToString(System.Globalization.CultureInfo.InvariantCulture),
+        DateTimePicker p => p.Checked ? p.Value.ToString("yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture) : "",
+        _ => editor.Text,
+    };
 
     private static Control CreateEditor(CustomFieldDefinition def) => def.FieldType switch
     {
