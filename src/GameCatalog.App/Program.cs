@@ -27,6 +27,7 @@ static class Program
         AppServices.Languages = new LanguageManager(AppPaths.LanguagesDirectory, LanguageManager.DefaultLanguageCode, AppLog.Write);
         AppServices.Languages.SetLanguage(AppServices.Prefs.Language);
         WireTranslations(AppServices.Languages);
+        GameCatalog.UI.Components.Localizer.Translator = AppServices.Languages;
 
         Application.Run(new MainForm());
     }

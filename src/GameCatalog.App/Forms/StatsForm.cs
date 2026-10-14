@@ -1,3 +1,5 @@
+using GameCatalog.UI.Components;
+using GameCatalog.UI.Icons;
 using GameCatalog.Core.Catalog;
 using GameCatalog.Core.Fields;
 using GameCatalog.Core.Models;
@@ -61,7 +63,7 @@ public sealed class StatsForm : Form
         StartPosition = FormStartPosition.CenterParent;
         MinimizeBox = false;
 
-        _icons = AmcIcons.LoadStrip();
+        _icons = IconThemeImageList.LoadStrip(IconThemeImageList.DefaultThemeId, Path.Combine(AppContext.BaseDirectory, "Resources"));
         _chartTools.ImageList = _icons;
 
         // --- lewy panel: kategorie + zakres (jak Panel2 + IncMovies) ---

@@ -1,3 +1,5 @@
+using GameCatalog.UI.Components;
+using GameCatalog.UI.Icons;
 using GameCatalog.App.Services;
 
 namespace GameCatalog.App;
@@ -6,6 +8,8 @@ namespace GameCatalog.App;
 /// Wszystkie parametry działają i zapisują się do prefs.json.</summary>
 public sealed class PrefsForm : Form
 {
+    private sealed record ThemeItem(string Id, string Text);
+
     public string Theme { get; private set; }
     public bool AutoNumbering { get; private set; }
     public bool ShowGroupCount { get; private set; }
@@ -104,7 +108,7 @@ public sealed class PrefsForm : Form
         MaximizeBox = false; MinimizeBox = false;
         try
         {
-            using var strip = AmcIcons.LoadStrip();
+            using var strip = IconThemeImageList.LoadStrip(IconThemeImageList.DefaultThemeId, Path.Combine(AppContext.BaseDirectory, "Resources"));
             var bmp = (Bitmap)strip.Images[(int)AmcIcon.Options];
             Icon = (Icon)Icon.FromHandle(bmp.GetHicon()).Clone();
         }
@@ -135,7 +139,7 @@ public sealed class PrefsForm : Form
 
     private void SaveToProps()
     {
-        Theme = _cbTheme.SelectedItem?.ToString() ?? Theme;
+        Theme = (_cbTheme.SelectedItem as ThemeItem)?.Id ?? Theme;
         AutoNumbering = _cbAutoNum.Checked;
         NaturalSort = _cbNatural.Checked;
         ForceFullRefresh = _cbForceRefresh.Checked;
@@ -196,7 +200,7 @@ public sealed class PrefsForm : Form
         // Ikony węzłów z bieżącego motywu AMC.
         try
         {
-            var strip = AmcIcons.LoadStrip(Theme);
+            var strip = IconThemeImageList.LoadStrip(Theme, Path.Combine(AppContext.BaseDirectory, "Resources"));
             _tree.ImageList = strip;
         }
         catch { }
@@ -250,8 +254,9 @@ public sealed class PrefsForm : Form
         t.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
         t.Controls.Add(new Label { Text = "Zestaw ikon:", AutoSize = true, Anchor = AnchorStyles.Left }, 0, 0);
         _cbTheme = new ComboBox { Dock = DockStyle.Fill, DropDownStyle = ComboBoxStyle.DropDownList };
-        foreach (var th in AmcIcons.Themes) _cbTheme.Items.Add(th.Name);
-        _cbTheme.SelectedItem = Theme;
+        _cbTheme.DisplayMember = nameof(ThemeItem.Text);
+        foreach (var th in IconThemeImageList.Themes) _cbTheme.Items.Add(new ThemeItem(th.Id, AppServices.Languages.Get(th.NameKey)));
+        _cbTheme.SelectedItem = _cbTheme.Items.Cast<ThemeItem>().FirstOrDefault(i => i.Id == Theme);
         if (_cbTheme.SelectedIndex < 0) _cbTheme.SelectedIndex = 0;
         t.Controls.Add(_cbTheme, 1, 0);
         t.Controls.Add(new Label { Text = "Schemat kolorowania:", AutoSize = true, Anchor = AnchorStyles.Left }, 0, 1);

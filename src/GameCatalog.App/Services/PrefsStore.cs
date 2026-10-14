@@ -1,3 +1,4 @@
+using GameCatalog.UI.Components;
 using System.Text.Json;
 
 namespace GameCatalog.App.Services;
@@ -10,7 +11,7 @@ public sealed class PrefsStore
 {
     /// <summary>Language code chosen by the user; empty until the first-run language selection.</summary>
     public string Language { get; set; } = "";
-    public string Theme { get; set; } = AmcIcons.DefaultTheme;
+    public string Theme { get; set; } = IconThemeImageList.DefaultThemeId;
     public List<string> RecentFiles { get; set; } = new();
     public string HtmlTemplate { get; set; } = "Szczegółowy";
     public bool ShowGroupCount { get; set; } = true;
@@ -58,7 +59,11 @@ public sealed class PrefsStore
         {
             var p = PrefsPath();
             if (File.Exists(p))
-                return JsonSerializer.Deserialize<PrefsStore>(File.ReadAllText(p)) ?? new PrefsStore();
+            {
+                var prefs = JsonSerializer.Deserialize<PrefsStore>(File.ReadAllText(p)) ?? new PrefsStore();
+                prefs.Theme = IconThemeImageList.NormalizeThemeId(prefs.Theme);
+                return prefs;
+            }
         }
         catch { }
         return new PrefsStore();

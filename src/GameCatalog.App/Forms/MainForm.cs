@@ -1,3 +1,5 @@
+using GameCatalog.UI.Components;
+using GameCatalog.UI.Icons;
 using System.ComponentModel;
 using System.Text;
 using System.Text.Json;
@@ -116,7 +118,7 @@ public sealed class MainForm : Form
         StartPosition = FormStartPosition.CenterScreen;
 
         _prefs = AppServices.Prefs;
-        _icons = AmcIcons.LoadStrip(_prefs.Theme);
+        _icons = IconThemeImageList.LoadStrip(_prefs.Theme, Path.Combine(AppContext.BaseDirectory, "Resources"));
         try
         {
             _appIconBitmap?.Dispose();
@@ -191,7 +193,7 @@ public sealed class MainForm : Form
     private void ApplyTheme()
     {
         var old = _icons;
-        _icons = AmcIcons.LoadStrip(_prefs.Theme);
+        _icons = IconThemeImageList.LoadStrip(_prefs.Theme, Path.Combine(AppContext.BaseDirectory, "Resources"));
         ApplyIconLists();
         old.Dispose();
         _list.LargeImageList = null;

@@ -1,3 +1,5 @@
+using GameCatalog.UI.Components;
+using GameCatalog.UI.Icons;
 namespace GameCatalog.App;
 
 /// <summary>Małe dialogi w stylu AMC: skok do numeru, kolumny listy, właściwości katalogu.</summary>
@@ -61,7 +63,7 @@ public sealed class NumberConflictDialog : Form
         // Ikona okna jak w AMC (taśma filmowa) — z bieżącego motywu ikon.
         try
         {
-            using var strip = AmcIcons.LoadStrip();
+            using var strip = IconThemeImageList.LoadStrip(IconThemeImageList.DefaultThemeId, Path.Combine(AppContext.BaseDirectory, "Resources"));
             var bmp = (Bitmap)strip.Images[(int)AmcIcon.MovieNumber];
             ShowIcon = true;
             Icon = (Icon)Icon.FromHandle(bmp.GetHicon()).Clone();
@@ -83,7 +85,7 @@ public sealed class NumberConflictDialog : Form
         var btnFind = new Button { Location = new Point(306, 10), Size = new Size(26, 24) };
         try
         {
-            using var strip = AmcIcons.LoadStrip();
+            using var strip = IconThemeImageList.LoadStrip(IconThemeImageList.DefaultThemeId, Path.Combine(AppContext.BaseDirectory, "Resources"));
             btnFind.Image = (Image)strip.Images[(int)AmcIcon.MovieFind].Clone();
         }
         catch { btnFind.Text = "?"; }
