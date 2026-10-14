@@ -13,6 +13,9 @@ public partial class MainForm
     /// <summary>Marks menu items generated at runtime so they can be replaced.</summary>
     private const string DynamicItem = "dynamic";
 
+    /// <summary>The latest HTML preview render (printing waits for it).</summary>
+    private Task _htmlRender = Task.CompletedTask;
+
     private void RefreshList()
     {
         var vm = _presenter.Build();
@@ -176,7 +179,7 @@ public partial class MainForm
     private Task RefreshHtmlAsync()
     {
         if (tabsGame.SelectedTab != tabHtml) return Task.CompletedTask;
-        return htmlPreview.ShowHtmlAsync(_current is null ? "<html><body></body></html>" : BuildHtml(_current));
+        return _htmlRender = htmlPreview.ShowHtmlAsync(_current is null ? "<html><body></body></html>" : BuildHtml(_current));
     }
 
     private void OnTabChanged() => _ = RefreshHtmlAsync();

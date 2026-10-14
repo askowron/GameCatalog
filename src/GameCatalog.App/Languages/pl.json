@@ -323,6 +323,7 @@
     "Status.Found": "Znaleziono: #{0} {1}",
     "Status.NoGameSelected": "Brak wybranej gry.",
     "Status.ScriptApplied": "Zastosowano dane z „{0}”.",
+    "Status.GameRemoved": "Gra została usunięta z katalogu.",
     "Status.Exported": "Wyeksportowano: {0}",
     "Msg.SaveBeforeNew": "Zapisać zmiany przed utworzeniem nowego katalogu?",
     "Msg.SaveBeforeOpen": "Zapisać zmiany przed otwarciem innego katalogu?",

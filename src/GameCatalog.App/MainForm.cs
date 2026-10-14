@@ -198,6 +198,7 @@ public partial class MainForm : Form
 
     private void OnLanguageChanged(object? sender, EventArgs e)
     {
+        CommitEditors();
         gameFrame.RefreshCaptions();
         extrasFrame.RefreshCaptions();
         ApplyColumns();

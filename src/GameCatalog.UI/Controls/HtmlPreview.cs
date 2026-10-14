@@ -13,11 +13,13 @@ public partial class HtmlPreview : UserControl
     private const string RuntimeDownloadUrl = "https://developer.microsoft.com/microsoft-edge/webview2/";
     private const int NavigateToStringLimit = 1_500_000;
     private Task? _initialization;
+    private string? _previewFile;
 
     public HtmlPreview()
     {
         InitializeComponent();
         lnkInstall.LinkClicked += (_, _) => OpenExternal(RuntimeDownloadUrl);
+        Disposed += (_, _) => DeletePreviewFile();
     }
 
     /// <summary>WebView2 profile folder; must be writable (not next to the exe in Program Files).</summary>
@@ -34,9 +36,16 @@ public partial class HtmlPreview : UserControl
         if (IsDisposed || !IsAvailable || webView.CoreWebView2 is null) return;
         if (html.Length >= NavigateToStringLimit)
         {
-            var file = Path.Combine(Path.GetTempPath(), "gamecatalog_preview.html");
+            // A unique file per call: a pending navigation never reads a file that is being rewritten.
+            var file = Path.Combine(Path.GetTempPath(), "gamecatalog_preview_" + Path.GetRandomFileName() + ".html");
             await File.WriteAllTextAsync(file, html);
-            if (IsDisposed || webView.CoreWebView2 is null) return;
+            if (IsDisposed || webView.CoreWebView2 is null)
+            {
+                TryDelete(file);
+                return;
+            }
+            DeletePreviewFile();
+            _previewFile = file;
             await NavigateAndWaitAsync(() => webView.CoreWebView2.Navigate(new Uri(file).AbsoluteUri));
         }
         else
@@ -46,8 +55,9 @@ public partial class HtmlPreview : UserControl
     }
 
     /// <summary>
-    /// Starts a navigation and completes when it finished (successfully or not), so printing right
-    /// after showing prints the new page. A navigation superseded by a newer one also completes.
+    /// Starts a navigation and completes when a navigation finished (successfully or with an error), so
+    /// printing right after showing prints the new page. Completions of navigations cancelled by a newer
+    /// one are ignored: a superseded call completes together with the navigation that replaced it.
     /// </summary>
     private Task NavigateAndWaitAsync(Action navigate)
     {
@@ -58,7 +68,11 @@ public partial class HtmlPreview : UserControl
             Disposed -= OnDisposed;
             completed.TrySetResult();
         }
-        void OnCompleted(object? sender, CoreWebView2NavigationCompletedEventArgs e) => Finish();
+        void OnCompleted(object? sender, CoreWebView2NavigationCompletedEventArgs e)
+        {
+            if (!e.IsSuccess && e.WebErrorStatus == CoreWebView2WebErrorStatus.OperationCanceled) return;
+            Finish();
+        }
         void OnDisposed(object? sender, EventArgs e) => Finish();   // never leave the caller waiting
         webView.NavigationCompleted += OnCompleted;
         Disposed += OnDisposed;
@@ -72,6 +86,19 @@ public partial class HtmlPreview : UserControl
             throw;
         }
         return completed.Task;
+    }
+
+    private void DeletePreviewFile()
+    {
+        if (_previewFile is null) return;
+        TryDelete(_previewFile);
+        _previewFile = null;
+    }
+
+    private static void TryDelete(string path)
+    {
+        try { File.Delete(path); }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException) { /* temp file: best effort */ }
     }
 
     public void Print()

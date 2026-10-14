@@ -136,10 +136,15 @@ public partial class MainForm
 
     private void actGameUndo_Execute(object? sender, EventArgs e)
     {
+        var game = _current;
         CommitEditors();
         SetHint(L.Get(_session.Undo.TryUndo() ? "Status.Undone" : "Status.NothingToUndo"));
+        // The undo may have renumbered the selected game: follow the instance, not the old number.
+        if (game is not null && IsInCatalog(game)) SelectGame(game.Number);
         RebindCurrent();
     }
+
+    private bool IsInCatalog(Game game) => _session.Games.Games.Any(g => ReferenceEquals(g, game));
 
     private void actGameUndo_Update(object? sender, EventArgs e) => actGameUndo.Enabled = _session.Undo.Count > 0;
 

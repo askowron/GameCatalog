@@ -1,3 +1,4 @@
+using GameCatalog.App.Diagnostics;
 using GameCatalog.App.Forms;
 using GameCatalog.App.Services;
 using GameCatalog.Core.Fields;
@@ -22,6 +23,7 @@ public partial class MainForm
 
     private void actManagePictures_Execute(object? sender, EventArgs e)
     {
+        CommitEditors();
         using var form = new PicturesForm(_session.Games);
         if (form.ShowDialog(this) != DialogResult.OK) return;
         _session.MarkDirty();
@@ -49,19 +51,28 @@ public partial class MainForm
             _ = RunScriptAsync(scripts[dialog.SelectedIndex], selectAfter: true);
     }
 
+    /// <summary>Runs a script for the selected game; never throws (callers fire and forget).</summary>
     private async Task RunScriptAsync(GameScript script, bool selectAfter)
     {
-        if (_current is not { } game) return;
-        CommitEditors();
-        UseWaitCursor = true;
-        GameInfoResult result;
         try
         {
-            result = await ScriptRunner.RunAsync(script, game.Clone(), PickFromList);
+            if (_current is not { } game) return;
+            CommitEditors();
+            UseWaitCursor = true;
+            GameInfoResult result;
+            try
+            {
+                result = await ScriptRunner.RunAsync(script, game.Clone(), PickFromList);
+            }
+            finally { UseWaitCursor = false; }
+            if (IsDisposed) return;
+            ApplyInfoResult(game, result, script.Name);
+            if (selectAfter && IsInCatalog(game)) SelectGame(game.Number);
         }
-        finally { UseWaitCursor = false; }
-        ApplyInfoResult(game, result, script.Name);
-        if (selectAfter) SelectGame(game.Number);
+        catch (Exception ex)
+        {
+            ErrorReporter.Show(ex, this);
+        }
     }
 
     /// <summary>Script/provider callback: let the user pick from a list (AMC PickList).</summary>
@@ -75,6 +86,12 @@ public partial class MainForm
     /// <summary>Shows fetched data, applies what the user ticks as one undoable step (AMC getscript_results).</summary>
     private void ApplyInfoResult(Game game, GameInfoResult result, string sourceName)
     {
+        if (!IsInCatalog(game))
+        {
+            // Deleted, or another catalog was opened, while the script was running.
+            SetHint(L.Get("Status.GameRemoved"));
+            return;
+        }
         if (!result.Success)
         {
             MessageBox.Show(this, result.Error + "\n\n" + string.Join("\n", result.Log), L.Get("Msg.ScriptFailed"),
@@ -105,11 +122,15 @@ public partial class MainForm
 
     private void actRenumber_Execute(object? sender, EventArgs e)
     {
+        CommitEditors();
+        var game = _current;
         var view = _presenter.CurrentView();
         if (view.Count == 0) return;
         if (MessageBox.Show(this, L.Get("Msg.ConfirmRenumber", view.Count), L.Get("Msg.Confirm"),
                 MessageBoxButtons.YesNo, MessageBoxIcon.Question) != DialogResult.Yes) return;
         _numbering.RenumberSequential(view);
+        // The list re-selected the old number, which now belongs to another game: follow the instance.
+        if (game is not null && IsInCatalog(game)) SelectGame(game.Number);
         RebindCurrent();
     }
 
@@ -137,6 +158,7 @@ public partial class MainForm
 
     private void actPreferences_Execute(object? sender, EventArgs e)
     {
+        CommitEditors();
         using var form = new PrefsForm(_prefs);
         if (form.ShowDialog(this) != DialogResult.OK) return;
         _prefs.AutoNumbering = form.AutoNumbering;

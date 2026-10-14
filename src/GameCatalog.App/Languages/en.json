@@ -323,6 +323,7 @@
     "Status.Found": "Found: #{0} {1}",
     "Status.NoGameSelected": "No game selected.",
     "Status.ScriptApplied": "Applied data from “{0}”.",
+    "Status.GameRemoved": "The game was removed from the catalog.",
     "Status.Exported": "Exported: {0}",
     "Msg.SaveBeforeNew": "Save changes before creating a new catalog?",
     "Msg.SaveBeforeOpen": "Save changes before opening another catalog?",

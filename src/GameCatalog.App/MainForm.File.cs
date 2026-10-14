@@ -44,8 +44,15 @@ public partial class MainForm
     private async void actFilePrint_Execute(object? sender, EventArgs e)
     {
         if (!RequireCurrent()) return;
-        tabsGame.SelectedTab = tabHtml;
-        await RefreshHtmlAsync();
+        if (tabsGame.SelectedTab != tabHtml)
+        {
+            tabsGame.SelectedTab = tabHtml;   // OnTabChanged starts the render; wait for it instead of rendering twice
+            await _htmlRender;
+        }
+        else
+        {
+            await RefreshHtmlAsync();
+        }
         htmlPreview.Print();
     }
 
