@@ -103,4 +103,46 @@ public class LocalizerTests
         Assert.DoesNotContain("mnuFileSave.Text", keys);
         Assert.All(f.localizer.CollectKeys(), k => Assert.Equal("SampleForm", k.Form));
     }
+
+    [Fact]
+    public void LanguageSwitch_AfterFormDisposed_DoesNotApplyOrThrow()
+    {
+        var t = English();
+        Localizer.Translator = t;
+        var f = new SampleForm();
+        f.localizer.Apply();
+        var label = f.lblHello;
+        f.Dispose();
+        Assert.Equal(0, t.SubscriberCount);
+
+        t.Forms.Clear();
+        t.Switch("pl");
+
+        Assert.Equal("Hello", label.Text);
+    }
+
+    [Fact]
+    public void ParameterlessLocalizer_UnsubscribesWhenContainerDisposed()
+    {
+        var t = English();
+        Localizer.Translator = t;
+        using var form = new Form { Text = "x" };
+        using var localizer = new Localizer { ContainerControl = form };
+        Assert.Equal(1, t.SubscriberCount);
+
+        form.Dispose();
+        Assert.Equal(0, t.SubscriberCount);
+        t.Switch("en");
+    }
+
+    [Fact]
+    public void Dispose_UnsubscribesFromOriginalTranslator_EvenAfterStaticChanged()
+    {
+        var first = English();
+        Localizer.Translator = first;
+        var f = new SampleForm();
+        Localizer.Translator = English();
+        f.Dispose();
+        Assert.Equal(0, first.SubscriberCount);
+    }
 }

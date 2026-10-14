@@ -79,7 +79,7 @@ public sealed class PrefsForm : Form
 
     public PrefsForm(PrefsStore prefs)
     {
-        Theme = prefs.Theme;
+        Theme = IconThemeImageList.NormalizeThemeId(prefs.Theme);
         AutoNumbering = prefs.AutoNumbering;
         ShowGroupCount = prefs.ShowGroupCount;
         HtmlTemplate = prefs.HtmlTemplate;

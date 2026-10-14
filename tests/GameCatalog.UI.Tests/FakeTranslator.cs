@@ -7,7 +7,9 @@ internal sealed class FakeTranslator : ITranslator
     public Dictionary<string, string> Strings { get; } = new();
     public Dictionary<(string Form, string Key), string> Forms { get; } = new();
     public string CurrentLanguage { get; private set; } = "pl";
-    public event EventHandler? LanguageChanged;
+    private EventHandler? _changed;
+    public int SubscriberCount => _changed?.GetInvocationList().Length ?? 0;
+    public event EventHandler? LanguageChanged { add => _changed += value; remove => _changed -= value; }
 
     public bool TryGet(string key, out string value)
     {
@@ -22,6 +24,6 @@ internal sealed class FakeTranslator : ITranslator
     public void Switch(string code)
     {
         CurrentLanguage = code;
-        LanguageChanged?.Invoke(this, EventArgs.Empty);
+        _changed?.Invoke(this, EventArgs.Empty);
     }
 }

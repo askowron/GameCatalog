@@ -17,7 +17,7 @@ public sealed class Localizer : Component
     private readonly IContainer? _components;
     private readonly Dictionary<string, string> _designTexts = new(StringComparer.Ordinal);
     private ContainerControl? _container;
-    private bool _subscribed;
+    private ITranslator? _subscribedTo;
 
     /// <summary>Active translator; set once by the application before the first form is created.</summary>
     public static ITranslator? Translator { get; set; }
@@ -37,10 +37,16 @@ public sealed class Localizer : Component
         get => _container;
         set
         {
-            if (_container is not null) _container.HandleCreated -= OnHandleCreated;
+            if (_container is not null)
+            {
+                _container.HandleCreated -= OnHandleCreated;
+                _container.Disposed -= OnContainerDisposed;
+            }
             _container = value;
+            if (_container is null) Unsubscribe();
             if (_container is null || (Site?.DesignMode ?? false)) return;
             _container.HandleCreated += OnHandleCreated;
+            _container.Disposed += OnContainerDisposed;
             Subscribe();
         }
     }
@@ -170,25 +176,47 @@ public sealed class Localizer : Component
 
     private void Subscribe()
     {
-        if (_subscribed || Translator is null) return;
-        Translator.LanguageChanged += OnLanguageChanged;
-        _subscribed = true;
+        if (_subscribedTo is not null || Translator is null) return;
+        _subscribedTo = Translator;
+        _subscribedTo.LanguageChanged += OnLanguageChanged;
     }
+
+    private void Unsubscribe()
+    {
+        if (_subscribedTo is null) return;
+        _subscribedTo.LanguageChanged -= OnLanguageChanged;
+        _subscribedTo = null;
+    }
+
+    private void OnContainerDisposed(object? sender, EventArgs e) => Unsubscribe();
 
     private void OnLanguageChanged(object? sender, EventArgs e)
     {
+        if (_container is null or { IsDisposed: true }) return;
         if (_container is { IsHandleCreated: true, InvokeRequired: true })
-            _container.BeginInvoke(Apply);
+        {
+            try { _container.BeginInvoke(ApplyIfAlive); }
+            catch (Exception ex) when (ex is ObjectDisposedException or InvalidOperationException) { }
+        }
         else
             Apply();
     }
 
+    private void ApplyIfAlive()
+    {
+        if (_container is not null and { IsDisposed: false }) Apply();
+    }
+
     protected override void Dispose(bool disposing)
     {
-        if (disposing && _subscribed && Translator is not null)
+        if (disposing)
         {
-            Translator.LanguageChanged -= OnLanguageChanged;
-            _subscribed = false;
+            Unsubscribe();
+            if (_container is not null)
+            {
+                _container.HandleCreated -= OnHandleCreated;
+                _container.Disposed -= OnContainerDisposed;
+            }
         }
         base.Dispose(disposing);
     }
