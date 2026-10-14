@@ -1,0 +1,13 @@
+<Project>
+  <!-- Settings shared by every project in the solution. -->
+  <PropertyGroup>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <!-- Version scheme kept from the original port: YY.M.D -->
+    <Version>26.10.14</Version>
+    <Product>GameCatalog</Product>
+    <Company>GameCatalog</Company>
+    <Copyright>Port of Ant Movie Catalog (GPL) — https://www.antp.be/software/moviecatalog/</Copyright>
+  </PropertyGroup>
+</Project>

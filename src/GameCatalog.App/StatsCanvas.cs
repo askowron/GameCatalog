@@ -23,9 +23,13 @@ public sealed class StatsCanvas : Control
         Color.FromArgb(0x00, 0xC0, 0x00), Color.FromArgb(0xFF, 0x00, 0x80),
     };
 
+    [System.ComponentModel.DesignerSerializationVisibility(System.ComponentModel.DesignerSerializationVisibility.Hidden)]
     public StatData? Data { get; set; }
+    [System.ComponentModel.DesignerSerializationVisibility(System.ComponentModel.DesignerSerializationVisibility.Hidden)]
     public bool ShowLegend { get; set; } = true;
+    [System.ComponentModel.DesignerSerializationVisibility(System.ComponentModel.DesignerSerializationVisibility.Hidden)]
     public bool ShowLabels { get; set; } = true;
+    [System.ComponentModel.DesignerSerializationVisibility(System.ComponentModel.DesignerSerializationVisibility.Hidden)]
     public int ScrollOffset { get; set; }
 
     public StatsCanvas()

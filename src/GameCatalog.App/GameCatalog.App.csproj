@@ -1,24 +1,21 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
-
-  <ItemGroup>
-    <ProjectReference Include="..\GameCatalog.Core\GameCatalog.Core.csproj" />
-    <ProjectReference Include="..\GameCatalog.Storage\GameCatalog.Storage.csproj" />
-    <ProjectReference Include="..\GameCatalog.Scripting\GameCatalog.Scripting.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Include="Resources\*.bmp">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-  </ItemGroup>
-
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFramework>net6.0-windows</TargetFramework>
-    <Nullable>enable</Nullable>
+    <TargetFramework>net10.0-windows</TargetFramework>
     <UseWindowsForms>true</UseWindowsForms>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <AssemblyVersion>26.9.22.26</AssemblyVersion>
+    <RootNamespace>GameCatalog.App</RootNamespace>
   </PropertyGroup>
-
+  <ItemGroup>
+    <ProjectReference Include="..\GameCatalog.Core\GameCatalog.Core.csproj" />
+    <ProjectReference Include="..\GameCatalog.Localization\GameCatalog.Localization.csproj" />
+    <ProjectReference Include="..\GameCatalog.Storage\GameCatalog.Storage.csproj" />
+    <ProjectReference Include="..\GameCatalog.Scripting\GameCatalog.Scripting.csproj" />
+    <ProjectReference Include="..\GameCatalog.Plugins.Abstractions\GameCatalog.Plugins.Abstractions.csproj" />
+    <ProjectReference Include="..\GameCatalog.Plugins.Abstractions.WinForms\GameCatalog.Plugins.Abstractions.WinForms.csproj" />
+    <ProjectReference Include="..\GameCatalog.Plugins.Hosting\GameCatalog.Plugins.Hosting.csproj" />
+    <ProjectReference Include="..\GameCatalog.UI\GameCatalog.UI.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\*.bmp" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
 </Project>

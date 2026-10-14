@@ -2,7 +2,22 @@
   <Folder Name="/src/">
     <Project Path="src/GameCatalog.App/GameCatalog.App.csproj" />
     <Project Path="src/GameCatalog.Core/GameCatalog.Core.csproj" />
+    <Project Path="src/GameCatalog.Localization/GameCatalog.Localization.csproj" />
+    <Project Path="src/GameCatalog.Plugins.Abstractions/GameCatalog.Plugins.Abstractions.csproj" />
+    <Project Path="src/GameCatalog.Plugins.Abstractions.WinForms/GameCatalog.Plugins.Abstractions.WinForms.csproj" />
+    <Project Path="src/GameCatalog.Plugins.Hosting/GameCatalog.Plugins.Hosting.csproj" />
     <Project Path="src/GameCatalog.Scripting/GameCatalog.Scripting.csproj" />
     <Project Path="src/GameCatalog.Storage/GameCatalog.Storage.csproj" />
+    <Project Path="src/GameCatalog.UI/GameCatalog.UI.csproj" />
   </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/GameCatalog.App.Tests/GameCatalog.App.Tests.csproj" />
+    <Project Path="tests/GameCatalog.Core.Tests/GameCatalog.Core.Tests.csproj" />
+    <Project Path="tests/GameCatalog.Localization.Tests/GameCatalog.Localization.Tests.csproj" />
+    <Project Path="tests/GameCatalog.Plugins.Hosting.Tests/GameCatalog.Plugins.Hosting.Tests.csproj" />
+    <Project Path="tests/GameCatalog.Scripting.Tests/GameCatalog.Scripting.Tests.csproj" />
+    <Project Path="tests/GameCatalog.Storage.Tests/GameCatalog.Storage.Tests.csproj" />
+    <Project Path="tests/GameCatalog.UI.Tests/GameCatalog.UI.Tests.csproj" />
+  </Folder>
+  <Folder Name="/samples/" />
 </Solution>
