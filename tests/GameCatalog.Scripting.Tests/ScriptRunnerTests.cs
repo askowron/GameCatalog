@@ -24,7 +24,7 @@ public class ScriptRunnerTests
     {
         var result = await ScriptRunner.RunAsync("int x = ;", new Game());
         Assert.False(result.Success);
-        Assert.Contains("1", result.Error);
+        Assert.Contains("line 1", result.Error);
     }
 
     [Fact]

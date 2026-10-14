@@ -17,8 +17,15 @@ public sealed class ScriptResultForm : Form
     public IReadOnlyList<(string Tag, string Value)> CheckedFields => _checked;
     public bool IncludeCover { get; private set; }
 
+    private readonly GameInfoResult _result;
+
+    /// <summary>True when the user selected anything to apply.</summary>
+    public bool HasSelection =>
+        _checked.Count > 0 || _result.Extras.Count > 0 || (IncludeCover && _result.Cover is not null);
+
     public ScriptResultForm(Game game, GameInfoResult result)
     {
+        _result = result;
         Text = "Wyniki skryptu";
         Width = 560; Height = 480;
         StartPosition = FormStartPosition.CenterParent;

@@ -1907,7 +1907,7 @@ public sealed class MainForm : Form
             return;
         }
         using var rf = new ScriptResultForm(g, result);
-        if (rf.ShowDialog(this) != DialogResult.OK || !result.HasData) return;
+        if (rf.ShowDialog(this) != DialogResult.OK || !rf.HasSelection) return;
         var backup = g.Clone();
         ApplyScriptResult(g, rf.CheckedFields);
         foreach (var e in result.Extras) { e.GameNumber = g.Number; g.Extras.Add(e); }
