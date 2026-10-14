@@ -132,4 +132,48 @@ public sealed class LanguageManagerTests : IDisposable
         Assert.Equal("tylko pl", strings.GetProperty("Only.Pl").GetString());
         Assert.Equal("en", doc.RootElement.GetProperty("language").GetProperty("code").GetString());
     }
+
+    [Fact]
+    public void NullSections_LoadWithoutThrowing_CodeFromFileName()
+    {
+        CreateDefault();
+        File.WriteAllText(Path.Combine(_dir, "fr.json"), "{\"language\":null,\"strings\":null,\"forms\":null}");
+        var m = new LanguageManager(_dir, "pl", _log.Add);
+        Assert.Contains(m.Available, l => l.Code == "fr");
+        m.SetLanguage("fr");
+        Assert.Equal("Any.Key", m.Get("Any.Key"));
+        Assert.Equal("&Plik", m.GetFormValue("MainForm", "mnuFile.Text"));
+        Assert.Contains(_log, l => l.Contains("fr.json"));
+    }
+
+    [Fact]
+    public void NullDocument_IsSkippedAndLogged()
+    {
+        CreateDefault();
+        File.WriteAllText(Path.Combine(_dir, "bad.json"), "null");
+        var m = new LanguageManager(_dir, "pl", _log.Add);
+        Assert.DoesNotContain(m.Available, l => l.Code == "bad");
+        Assert.Contains(_log, l => l.Contains("bad.json"));
+    }
+
+    [Fact]
+    public void NullEntries_AreDroppedAndLogged()
+    {
+        CreateDefault();
+        File.WriteAllText(Path.Combine(_dir, "de.json"),
+            "{\"language\":{\"code\":\"de\"},\"forms\":{\"MainForm\":null,\"Other\":{\"x.Text\":null}},\"strings\":{\"K\":null}}");
+        var m = new LanguageManager(_dir, "pl", _log.Add);
+        m.SetLanguage("de");
+        Assert.Equal("K", m.Get("K"));
+        Assert.Null(m.GetFormValue("Other", "x.Text"));
+        Assert.Contains(_log, l => l.Contains("de.json"));
+    }
+
+    [Fact]
+    public void SetLanguage_StoresCanonicalCode()
+    {
+        var m = CreateDefault();
+        m.SetLanguage("EN");
+        Assert.Equal("en", m.CurrentLanguage);
+    }
 }

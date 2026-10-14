@@ -55,10 +55,11 @@ public sealed class LanguageManager : ITranslator
     /// <summary>Switches the language; an unknown code selects the default language.</summary>
     public void SetLanguage(string code)
     {
-        var target = code is not null && _files.ContainsKey(code) ? code : DefaultLanguage;
+        var file = code is not null ? _files.GetValueOrDefault(code) : null;
+        var target = file?.Language.Code ?? DefaultLanguage;
         if (string.Equals(target, CurrentLanguage, StringComparison.OrdinalIgnoreCase)) return;
         CurrentLanguage = target;
-        _current = _files.GetValueOrDefault(target) ?? _default;
+        _current = file ?? _default;
         LanguageChanged?.Invoke(this, EventArgs.Empty);
     }
 
@@ -144,6 +145,7 @@ public sealed class LanguageManager : ITranslator
         }
         foreach (var path in Directory.EnumerateFiles(directory, "*.json"))
         {
+            var fileName = Path.GetFileName(path);
             LanguageFile? file = null;
             try
             {
@@ -151,12 +153,72 @@ public sealed class LanguageManager : ITranslator
             }
             catch (Exception ex) when (ex is JsonException or IOException or UnauthorizedAccessException)
             {
-                _log($"Localization: cannot read '{Path.GetFileName(path)}': {ex.Message}");
+                _log($"Localization: cannot read '{fileName}': {ex.Message}");
+                continue;
             }
-            if (file is null) continue;
+            if (file is null)
+            {
+                _log($"Localization: cannot read '{fileName}': file contains no language data.");
+                continue;
+            }
+            if (Repair(file))
+                _log($"Localization: '{fileName}' has missing or null entries; they were replaced with defaults.");
             if (file.Language.Code.Length == 0)
                 file.Language.Code = Path.GetFileNameWithoutExtension(path);
             yield return file;
         }
+    }
+
+    /// <summary>
+    /// Replaces JSON nulls (missing header, sections or entries) with empty values so that a
+    /// malformed file cannot break lookups later. Returns true when anything was replaced.
+    /// </summary>
+    private static bool Repair(LanguageFile file)
+    {
+        var repaired = false;
+        if (file.Language is null)
+        {
+            file.Language = new LanguageFile.Header();
+            repaired = true;
+        }
+        file.Language.Code = Text(file.Language.Code, ref repaired);
+        file.Language.Name = Text(file.Language.Name, ref repaired);
+        file.Language.Author = Text(file.Language.Author, ref repaired);
+        file.Language.Version = Text(file.Language.Version, ref repaired);
+
+        if (file.Forms is null) repaired = true;
+        var forms = new Dictionary<string, Dictionary<string, string>>(StringComparer.Ordinal);
+        foreach (var (form, section) in file.Forms ?? new Dictionary<string, Dictionary<string, string>>(StringComparer.Ordinal))
+        {
+            if (section is null)
+            {
+                repaired = true;
+                continue;
+            }
+            forms[form] = NonNullValues(section, ref repaired);
+        }
+        file.Forms = forms;
+
+        if (file.Strings is null) repaired = true;
+        file.Strings = NonNullValues(file.Strings ?? new Dictionary<string, string>(StringComparer.Ordinal), ref repaired);
+        return repaired;
+    }
+
+    private static string Text(string? value, ref bool repaired)
+    {
+        if (value is not null) return value;
+        repaired = true;
+        return "";
+    }
+
+    private static Dictionary<string, T> NonNullValues<T>(Dictionary<string, T> source, ref bool repaired) where T : class
+    {
+        var result = new Dictionary<string, T>(StringComparer.Ordinal);
+        foreach (var (key, value) in source)
+        {
+            if (value is null) repaired = true;
+            else result[key] = value;
+        }
+        return result;
     }
 }
