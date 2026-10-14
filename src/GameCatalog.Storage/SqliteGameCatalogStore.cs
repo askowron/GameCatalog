@@ -80,6 +80,9 @@ CREATE TABLE IF NOT EXISTS CustomValues(
     // ---------- save the whole catalog (like AMC Save) ----------
     public void SaveAll(GameList list, IEnumerable<LoanRecord> loans)
     {
+        var duplicates = list.Games.GroupBy(g => g.Number).Where(grp => grp.Count() > 1).Select(grp => grp.Key).OrderBy(n => n).ToList();
+        if (duplicates.Count > 0)
+            throw new InvalidOperationException($"Duplicate game numbers: {string.Join(", ", duplicates)}. Renumber the games before saving.");
         Initialize();
         using var c = Open();
         using var tx = c.BeginTransaction();

@@ -89,4 +89,54 @@ public sealed class CatalogSessionTests : IDisposable
         s.New(PathOf("a.gc"));
         Assert.Equal(PathOf("a.gc"), prefs.RecentFiles[0]);
     }
+
+    [Fact]
+    public void Open_CorruptFile_Throws_AndSessionKeepsPreviousCatalog()
+    {
+        var s = new CatalogSession(new PrefsStore());
+        s.New(PathOf("good.gc"));
+        s.Games.Add(new Game { Title = "Keep" });
+        File.WriteAllBytes(PathOf("bad.gc"), Enumerable.Repeat((byte)0x41, 4096).ToArray());
+
+        Assert.ThrowsAny<Exception>(() => s.Open(PathOf("bad.gc")));
+
+        Assert.Equal(PathOf("good.gc"), s.FilePath);
+        Assert.Equal("Keep", Assert.Single(s.Games.Games).Title);
+        s.Save();
+        var check = new CatalogSession(new PrefsStore());
+        check.Open(PathOf("good.gc"));
+        Assert.Equal("Keep", Assert.Single(check.Games.Games).Title);
+        Assert.Equal(4096, new FileInfo(PathOf("bad.gc")).Length);
+    }
+
+    [Fact]
+    public void New_InvalidPath_Throws_AndKeepsExistingGames()
+    {
+        var s = new CatalogSession(new PrefsStore());
+        s.New(PathOf("good.gc"));
+        s.Games.Add(new Game { Title = "Keep" });
+        File.WriteAllText(PathOf("afile"), "x");
+
+        Assert.ThrowsAny<Exception>(() => s.New(Path.Combine(PathOf("afile"), "n.gc")));
+
+        Assert.Equal(PathOf("good.gc"), s.FilePath);
+        Assert.Single(s.Games.Games);
+    }
+
+    [Fact]
+    public void SaveAs_InvalidPath_Throws_AndKeepsFilePath()
+    {
+        var s = new CatalogSession(new PrefsStore());
+        s.New(PathOf("good.gc"));
+        File.WriteAllText(PathOf("afile"), "x");
+
+        Assert.ThrowsAny<Exception>(() => s.SaveAs(Path.Combine(PathOf("afile"), "n.gc")));
+
+        Assert.Equal(PathOf("good.gc"), s.FilePath);
+        s.Games.Add(new Game { Title = "After" });
+        s.Save();                                   // still targets the original file
+        var check = new CatalogSession(new PrefsStore());
+        check.Open(PathOf("good.gc"));
+        Assert.Single(check.Games.Games);
+    }
 }

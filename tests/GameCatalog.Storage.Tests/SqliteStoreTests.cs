@@ -81,4 +81,21 @@ public sealed class SqliteStoreTests : IDisposable
         var loaded = store.LoadAll().Games[0];
         Assert.True(Core.Fields.YesNo.Parse(loaded.CustomValues["Owned"]));
     }
+
+    [Fact]
+    public void SaveAll_DuplicateNumbers_ThrowsAndLeavesFileUntouched()
+    {
+        var store = new SqliteGameCatalogStore(_path);
+        var ok = new GameList();
+        ok.Add(new Game { Number = 1, Title = "Keep" });
+        store.SaveAll(ok, Array.Empty<LoanRecord>());
+
+        var dup = new GameList();
+        dup.Add(new Game { Number = 1, Title = "A" });
+        dup.Add(new Game { Number = 1, Title = "B" });
+        var ex = Assert.Throws<InvalidOperationException>(() => store.SaveAll(dup, Array.Empty<LoanRecord>()));
+        Assert.Contains("1", ex.Message);
+
+        Assert.Equal("Keep", Assert.Single(store.LoadAll().Games).Title);
+    }
 }

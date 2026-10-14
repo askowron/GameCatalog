@@ -95,4 +95,44 @@ public class NumberingServiceTests
         Assert.True(s.Undo.TryUndo());
         Assert.Equal("A", s.Games.Find(1)!.Title);
     }
+
+    [Fact]
+    public void RenumberSequential_GamesOutsideView_AreShiftedAwayFromNewRange()
+    {
+        var (s, n) = Create();                                  // A=1, B=2, C=5
+        var c = s.Games.Find(5)!;
+        s.Games.Add(new Game { Number = 3, Title = "D" });      // outside the view, collides with 1..3
+        var d = s.Games.Find(3)!;
+        s.Loans.Add(new LoanRecord { GameNumber = 3, Borrower = "Ewa" });
+        var view = new List<Game> { s.Games.Find(1)!, s.Games.Find(2)!, c };   // -> 1, 2, 3
+
+        n.RenumberSequential(view);
+
+        Assert.Equal(3, c.Number);
+        Assert.Equal(6, d.Number);                              // above max(3, existing 5)
+        Assert.Equal(4, s.Games.Games.Select(g => g.Number).Distinct().Count());
+        Assert.Equal(6, s.Loans.Single(l => l.Borrower == "Ewa").GameNumber);
+
+        Assert.True(s.Undo.TryUndo());
+        Assert.Equal(3, d.Number);
+        Assert.Equal(5, c.Number);
+        Assert.Equal(3, s.Loans.Single(l => l.Borrower == "Ewa").GameNumber);
+    }
+
+    [Fact]
+    public void RenumberSequential_OrphanLoans_AreDetachedAndRestoredByUndo()
+    {
+        var (s, n) = Create();
+        s.Loans.Add(new LoanRecord { GameNumber = 9, GameTitle = "Gone", Borrower = "Orphan" });
+        var view = s.Games.Games.OrderByDescending(g => g.Title).ToList();   // C, B, A -> 1, 2, 3
+
+        n.RenumberSequential(view);
+
+        var orphan = s.Loans.Single(l => l.Borrower == "Orphan");
+        Assert.Equal(0, orphan.GameNumber);
+        Assert.Equal("Gone", orphan.GameTitle);
+
+        Assert.True(s.Undo.TryUndo());
+        Assert.Equal(9, orphan.GameNumber);
+    }
 }

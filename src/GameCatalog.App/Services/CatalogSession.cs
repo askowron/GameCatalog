@@ -45,8 +45,10 @@ public sealed class CatalogSession(PrefsStore prefs)
     public void Open(string path, bool addSamplesIfNew = false)
     {
         bool existed = File.Exists(path);
-        _store = new SqliteGameCatalogStore(path);
-        var data = _store.LoadAll();
+        // Load first: a corrupt or locked file must leave the current session untouched.
+        var store = new SqliteGameCatalogStore(path);
+        var data = store.LoadAll();
+        _store = store;
         Games.ReplaceAll(data.Games);
         Games.CustomFieldDefs.Clear();
         Games.CustomFieldDefs.AddRange(data.CustomFieldDefs);
@@ -67,12 +69,14 @@ public sealed class CatalogSession(PrefsStore prefs)
 
     public void New(string path)
     {
+        // Create the file first: when that fails the current catalog stays as it was.
+        var store = new SqliteGameCatalogStore(path);
+        store.SaveAll(new GameList(), Array.Empty<LoanRecord>());
+        _store = store;
         Games.Clear();
         Games.CustomFieldDefs.Clear();
         Loans.Clear();
         Undo.Clear();
-        _store = new SqliteGameCatalogStore(path);
-        _store.SaveAll(Games, Loans);
         FilePath = path;
         SetDirty(false);
         RememberRecent(path);
@@ -96,9 +100,17 @@ public sealed class CatalogSession(PrefsStore prefs)
 
     public void SaveAs(string path)
     {
+        var previousStore = _store;
+        var previousPath = FilePath;
         _store = new SqliteGameCatalogStore(path);
         FilePath = path;
-        Save();
+        try { Save(); }
+        catch
+        {
+            _store = previousStore;
+            FilePath = previousPath;
+            throw;
+        }
         RememberRecent(path);
     }
 

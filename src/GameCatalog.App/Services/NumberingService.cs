@@ -65,11 +65,19 @@ public sealed class NumberingService(CatalogSession session)
         return newNumber;
     }
 
-    /// <summary>Numbers the given games 1..n in the given order (Tools → Renumber).</summary>
+    /// <summary>
+    /// Numbers the given games 1..n in the given order (Tools → Renumber). Games outside the view
+    /// that would collide with 1..n move to free numbers above. Loans follow their game; loans
+    /// that matched no game are detached (GameNumber = 0, title kept). With duplicate numbers the
+    /// loans follow the first game in view order.
+    /// </summary>
     public void RenumberSequential(IReadOnlyList<Game> view)
     {
         if (view.Count == 0) return;
         var snapshot = Snapshot();
+        var known = session.Games.Games.Select(g => g.Number).ToHashSet();
+        var inView = new HashSet<Game>(view, ReferenceEqualityComparer.Instance);
+
         var newByOld = new Dictionary<int, int>();
         int n = 1;
         foreach (var g in view)
@@ -77,8 +85,24 @@ public sealed class NumberingService(CatalogSession session)
             newByOld.TryAdd(g.Number, n);
             SetNumber(g, n++);
         }
+
+        // Games not in the view keep their number unless it falls into the new 1..n range.
+        var outside = session.Games.Games.Where(g => !inView.Contains(g)).ToList();
+        int next = Math.Max(view.Count, known.DefaultIfEmpty(0).Max());
+        var movedOutside = new Dictionary<int, int>();
+        foreach (var g in outside)
+        {
+            if (g.Number < 1 || g.Number > view.Count) continue;
+            movedOutside.TryAdd(g.Number, ++next);
+            SetNumber(g, next);
+        }
+
         foreach (var loan in session.Loans)
+        {
             if (newByOld.TryGetValue(loan.GameNumber, out var nn)) loan.GameNumber = nn;
+            else if (movedOutside.TryGetValue(loan.GameNumber, out var moved)) loan.GameNumber = moved;
+            else if (!known.Contains(loan.GameNumber)) loan.GameNumber = 0;
+        }
         Commit(snapshot);
     }
 
