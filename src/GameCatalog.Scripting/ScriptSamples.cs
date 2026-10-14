@@ -1,6 +1,6 @@
 namespace GameCatalog.Scripting;
 
-/// <summary>Przykładowe skrypty instalowane przy pierwszym użyciu (jak wbudowane skrypty AMC).</summary>
+/// <summary>Sample scripts installed on first use (like the built-in AMC scripts).</summary>
 public static class ScriptSamples
 {
     public static void EnsureSamples()
@@ -18,7 +18,7 @@ public static class ScriptSamples
 
     public const string Steam =
 @"// Name: Steam
-// Description: Pobiera dane ze sklepu Steam (developer, gatunek, oceny, opis, okładka).
+// Description: Fetches data from the Steam store (developer, genre, ratings, description, cover).
 // Version: 1.0
 // Author: GameCatalog
 // Site: https://store.steampowered.com
@@ -63,7 +63,7 @@ Api.Log(""Gotowe."");
 
     public const string Igdb =
 @"// Name: IGDB (API)
-// Description: Pobiera dane z oficjalnego API IGDB. Wymaga darmowych kluczy Twitch - załóż aplikację na https://dev.twitch.tv/console , skopiuj Identyfikator klienta i Tajny klucz klienta, wklej je poniżej i uruchom ponownie.
+// Description: Fetches data from the official IGDB API. Requires free Twitch keys - create an application at https://dev.twitch.tv/console , copy the Client ID and Client Secret, paste them below and run again.
 // Version: 2.0
 // Author: GameCatalog
 // Site: https://api.igdb.com
@@ -174,7 +174,7 @@ Api.Log(""Gotowe."");
 ";
     public const string Wikipedia =
 @"// Name: Wikipedia PL
-// Description: Pobiera opis i miniaturę z polskiej Wikipedii.
+// Description: Fetches the description and thumbnail from Polish Wikipedia.
 // Version: 1.0
 // Author: GameCatalog
 // Site: https://pl.wikipedia.org
@@ -197,7 +197,7 @@ Api.Log(""Gotowe."");
 
     public const string GryOnline =
 @"// Name: GRY-Online.pl
-// Description: Pobiera dane z GRY-Online.pl (tytuły PL/EN, developer, gatunek, platformy, rok, ocena, opis, okładka).
+// Description: Fetches data from GRY-Online.pl (PL/EN titles, developer, genre, platforms, year, rating, description, cover).
 // Version: 1.0
 // Author: GameCatalog
 // Site: https://www.gry-online.pl

@@ -1,8 +1,8 @@
 namespace GameCatalog.Scripting;
 
 /// <summary>
-/// Plik skryptu (.gcsx) — odpowiednik skryptów .ifs w AMC.
-/// Nagłówek z metadanymi jak GetScriptTitle/Version/Authors w getscript.pas:
+/// Script file (.gcsx) — counterpart of the .ifs scripts in AMC.
+/// Metadata header like GetScriptTitle/Version/Authors in getscript.pas:
 /// // Name: ..., // Description: ..., // Version: ..., // Author: ..., // Site: ...
 /// </summary>
 public sealed class GameScript

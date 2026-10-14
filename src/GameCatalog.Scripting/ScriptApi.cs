@@ -7,9 +7,9 @@ using GameCatalog.Core.Models;
 namespace GameCatalog.Scripting;
 
 /// <summary>
-/// API dostępne w skryptach (obiekt Api) — odpowiednik funkcji rejestrowanych
-/// w AMC getscript.pas (grupy HTML, pól, dodatków, wyborów i komunikatów),
-/// z polami filmowymi przeportowanymi na growe (tagi jak w GameFields).
+/// API exposed to scripts as the <c>Api</c> object — counterpart of the functions registered
+/// in AMC getscript.pas (HTML, fields, extras, picking and messages), with movie fields ported
+/// to game fields (tags as in GameFields).
 /// </summary>
 public sealed class ScriptApi
 {
@@ -44,10 +44,10 @@ public sealed class ScriptApi
     public List<GameExtra> Extras { get; } = new();
     public byte[]? Cover { get; private set; }
 
-    /// <summary>Tytuł bieżącej gry (punkt startowy skryptu).</summary>
+    /// <summary>Title of the current game (the script's starting point).</summary>
     public string Title => _game.Title;
 
-    // ---- HTTP (jak GetPage/PostPage/GetPicture) ----
+    // ---- HTTP (like GetPage/PostPage/GetPicture) ----
     private async Task<HttpResponseMessage> SendAsync(HttpRequestMessage req)
     {
         foreach (var h in _headers)
@@ -58,7 +58,7 @@ public sealed class ScriptApi
         return await Http.SendAsync(req).ConfigureAwait(false);
     }
 
-    /// <summary>Dodatkowy nagłówek HTTP (np. Client-ID, Authorization dla API IGDB).</summary>
+    /// <summary>Extra HTTP header (e.g. Client-ID, Authorization for the IGDB API).</summary>
     public void SetRequestHeader(string name, string value) => _headers[name] = value;
     public void ClearRequestHeaders() => _headers.Clear();
 
@@ -81,7 +81,7 @@ public sealed class ScriptApi
         return await res.Content.ReadAsStringAsync().ConfigureAwait(false);
     }
 
-    /// <summary>Pobiera obrazek i ustawia jako okładkę (jak GetPicture).</summary>
+    /// <summary>Downloads an image and sets it as the cover (like GetPicture).</summary>
     public async Task<bool> GetPicture(string url)
     {
         try
@@ -89,17 +89,17 @@ public sealed class ScriptApi
             var bytes = await Http.GetByteArrayAsync(url).ConfigureAwait(false);
             if (bytes.Length < 100) return false;
             Cover = bytes;
-            Log($"Pobrano okładkę ({bytes.Length / 1024} KB).");
+            Log($"Cover downloaded ({bytes.Length / 1024} KB).");
             return true;
         }
         catch (Exception ex)
         {
-            Log("Błąd pobierania okładki: " + ex.Message);
+            Log("Cover download error: " + ex.Message);
             return false;
         }
     }
 
-    // ---- HTML (jak HTMLDecode/HTMLRemoveTags/URLEncode) ----
+    // ---- HTML (like HTMLDecode/HTMLRemoveTags/URLEncode) ----
     public string HtmlDecode(string s) => WebUtility.HtmlDecode(s);
     public string HtmlRemoveTags(string s) => Regex.Replace(s ?? "", "<.*?>", "");
     public string UrlEncode(string s) => Uri.EscapeDataString(s ?? "");
@@ -127,7 +127,7 @@ public sealed class ScriptApi
         return j < 0 ? "" : input.Substring(i, j - i);
     }
 
-    // ---- Pola (jak SetField/GetField/SetCustomField) ----
+    // ---- Fields (like SetField/GetField/SetCustomField) ----
     public void SetField(string tag, string value)
     {
         if (string.IsNullOrWhiteSpace(value)) return;
@@ -147,7 +147,7 @@ public sealed class ScriptApi
         CustomFields.TryGetValue(tag, out var v) ? v
         : _game.CustomValues.TryGetValue(tag, out var g) ? g : "";
 
-    // ---- Dodatki (jak AddExtra) ----
+    // ---- Extras (like AddExtra) ----
     public void AddExtra(string title, string category = "", string description = "")
     {
         if (string.IsNullOrWhiteSpace(title)) return;
@@ -156,11 +156,11 @@ public sealed class ScriptApi
             Title = title.Trim(),
             Category = category?.Trim() ?? "",
             Description = description?.Trim() ?? "",
-            CreatedBy = "skrypt",
+            CreatedBy = "script",
         });
     }
 
-    /// <summary>Parsuje JSON i zwraca root (dokument do zamknięcia przez Dispose).</summary>
+    /// <summary>Parses JSON and returns the root element (the document must be disposed by the caller).</summary>
     public System.Text.Json.JsonElement JsonRoot(string json,
         out System.Text.Json.JsonDocument doc)
     {
@@ -168,7 +168,7 @@ public sealed class ScriptApi
         return doc.RootElement;
     }
 
-    /// <summary>Linki &lt;a class=...&gt; ze strony (np. wyniki DuckDuckGo).</summary>
+    /// <summary>Links &lt;a class=...&gt; from a page (e.g. DuckDuckGo results).</summary>
     public List<(string Href, string Text)> FindLinks(string html, string cssClass)
     {
         var list = new List<(string, string)>();
@@ -180,7 +180,7 @@ public sealed class ScriptApi
         return list;
     }
 
-    /// <summary>Wartość meta tagu (property/content w dowolnej kolejności).</summary>
+    /// <summary>Value of a meta tag (property/content in either order).</summary>
     public string MetaContent(string page, string prop)
     {
         if (string.IsNullOrEmpty(page)) return "";
@@ -190,7 +190,7 @@ public sealed class ScriptApi
         return m.Success ? m.Groups[1].Value : "";
     }
 
-    /// <summary>Blok JSON-LD zawierający wskazany tekst (np. VideoGame).</summary>
+    /// <summary>JSON-LD block containing the given text (e.g. VideoGame).</summary>
     public string ScriptJson(string page, string mustContain)
     {
         if (string.IsNullOrEmpty(page)) return "";
@@ -202,8 +202,8 @@ public sealed class ScriptApi
     }
 
     /// <summary>
-    /// Wyszukiwanie linków (DuckDuckGo, awaryjnie Bing RSS) — odpowiednik
-    /// wyszukiwania w skryptach AMC. Zwraca unikalne (Url, Tytuł) z hosta.
+    /// Link search (DuckDuckGo, Bing RSS as a fallback) — counterpart of the
+    /// search in AMC scripts. Returns unique (Url, Name) pairs from the host.
     /// </summary>
     public async Task<List<(string Url, string Name)>> SearchLinks(string query, string hostPart)
     {
@@ -231,9 +231,9 @@ public sealed class ScriptApi
                 }
                 if (found.Count > 0) return found;
             }
-            else Log("DuckDuckGo ogranicza zapytania, próbuję Bing.");
+            else Log("DuckDuckGo is rate limiting queries, trying Bing.");
         }
-        catch (Exception ex) { Log("Błąd DuckDuckGo: " + ex.Message); }
+        catch (Exception ex) { Log("DuckDuckGo error: " + ex.Message); }
         try
         {
             var rss = await GetPage("https://www.bing.com/search?format=rss&q=" + Uri.EscapeDataString(query))
@@ -244,11 +244,11 @@ public sealed class ScriptApi
                 Add(Between(item, "<link>", "</link>").Trim(), Between(item, "<title>", "</title>"));
             }
         }
-        catch (Exception ex) { Log("Błąd Bing: " + ex.Message); }
+        catch (Exception ex) { Log("Bing error: " + ex.Message); }
         return found;
     }
 
-    // ---- Wybór i komunikaty (jak PickList/Input/ShowMessage) ----
+    // ---- Picking and messages (like PickList/Input/ShowMessage) ----
     public int PickList(string title, IList<string> options)
     {
         if (_picker is null || options.Count == 0) return 0;

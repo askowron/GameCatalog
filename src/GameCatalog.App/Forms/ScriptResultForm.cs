@@ -2,6 +2,7 @@ using System.Reflection;
 using GameCatalog.Core.Catalog;
 using GameCatalog.Core.Fields;
 using GameCatalog.Core.Models;
+using GameCatalog.Plugins.Abstractions;
 
 namespace GameCatalog.App;
 
@@ -16,7 +17,7 @@ public sealed class ScriptResultForm : Form
     public IReadOnlyList<(string Tag, string Value)> CheckedFields => _checked;
     public bool IncludeCover { get; private set; }
 
-    public ScriptResultForm(Game game, Scripting.ScriptResult result)
+    public ScriptResultForm(Game game, GameInfoResult result)
     {
         Text = "Wyniki skryptu";
         Width = 560; Height = 480;
@@ -94,7 +95,4 @@ public sealed class ScriptResultForm : Form
 
     private static string Trunc(string s) =>
         string.IsNullOrEmpty(s) ? "—" : (s.Length > 60 ? s[..57] + "…" : s);
-
-    public bool HasAny(Scripting.ScriptResult result) =>
-        _checked.Count > 0 || (IncludeCover && result.Cover is not null) || result.Extras.Count > 0;
 }

@@ -5,6 +5,7 @@ using GameCatalog.Core.Catalog;
 using GameCatalog.Core.Fields;
 using GameCatalog.Core.Models;
 using GameCatalog.Core.Services;
+using GameCatalog.Plugins.Abstractions;
 using GameCatalog.Storage;
 
 namespace GameCatalog.App;
@@ -1893,7 +1894,7 @@ public sealed class MainForm : Form
             return p.ShowDialog(this) == DialogResult.OK ? p.SelectedIndex : -1;
         }
         UseWaitCursor = true;
-        Scripting.ScriptResult result;
+        GameInfoResult result;
         try
         {
             result = await Scripting.ScriptRunner.RunAsync(script, g, Pick).ConfigureAwait(true);
@@ -1906,7 +1907,7 @@ public sealed class MainForm : Form
             return;
         }
         using var rf = new ScriptResultForm(g, result);
-        if (rf.ShowDialog(this) != DialogResult.OK || !rf.HasAny(result)) return;
+        if (rf.ShowDialog(this) != DialogResult.OK || !result.HasData) return;
         var backup = g.Clone();
         ApplyScriptResult(g, rf.CheckedFields);
         foreach (var e in result.Extras) { e.GameNumber = g.Number; g.Extras.Add(e); }
