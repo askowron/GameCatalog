@@ -1,3 +1,4 @@
+using GameCatalog.App.Services;
 namespace GameCatalog.App;
 
 /// <summary>Edytor szablonu HTML karty gry — odpowiednik AMC HTMLEditor.pas (w wersji uproszczonej).</summary>

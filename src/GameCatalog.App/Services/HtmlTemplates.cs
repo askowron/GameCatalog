@@ -1,10 +1,11 @@
+using GameCatalog.Core.Fields;
 using GameCatalog.Core.Models;
 
-namespace GameCatalog.App;
+namespace GameCatalog.App.Services;
 
 /// <summary>
-/// Szablony HTML karty gry — odpowiednik szablonów AMC (HTMLViewer + templates).
-/// Znaczniki: {Title}, {LocalizedTitle}, {Developer}, {Publisher}, {Designer},
+/// HTML templates of the game card — counterpart of the AMC templates (HTMLViewer + templates).
+/// Placeholders: {Title}, {LocalizedTitle}, {Developer}, {Publisher}, {Designer},
 /// {Composer}, {VoiceActors}, {Country}, {ReleaseYear}, {PlaytimeHours}, {Genre},
 /// {Pegi}, {Platform}, {Store}, {Engine}, {GameMode}, {Status}, {UserRating},
 /// {CriticRating}, {Url}, {Description}, {Comments}, {Number}, {Cover}, {Extras}.
@@ -46,9 +47,7 @@ public static class HtmlTemplates
 
     public static string CustomPath(string name)
     {
-        var dir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "GameCatalog", "Templates");
-        Directory.CreateDirectory(dir);
-        return Path.Combine(dir, name + ".html");
+        return Path.Combine(AppPaths.TemplatesDirectory, name + ".html");
     }
 
     public static string Load(string name)
@@ -61,7 +60,7 @@ public static class HtmlTemplates
         return Default(name);
     }
 
-    public static string Expand(string template, Game g, string? coverFileUri)
+    public static string Expand(string template, Game g, string? coverUri)
     {
         string H(string? s) => System.Net.WebUtility.HtmlEncode(s ?? "");
         var extras = "";
@@ -70,8 +69,8 @@ public static class HtmlTemplates
             extras = "<ul>" + string.Join("", g.Extras.Select(e =>
                 $"<li>{H(e.Title)} <i>[{H(e.Category)}]</i></li>")) + "</ul>";
         }
-        string cover = coverFileUri is null ? "" :
-            $"<img src='{coverFileUri}' style='max-width:220px;float:right;margin:0 0 8px 8px'>";
+        string cover = coverUri is null ? "" :
+            $"<img src='{coverUri}' style='max-width:220px;float:right;margin:0 0 8px 8px'>";
         string desc = H(g.Description).Replace("\n", "<br>");
         return template
             .Replace("{Title}", H(g.Title))
@@ -90,9 +89,9 @@ public static class HtmlTemplates
             .Replace("{Store}", H(g.Store))
             .Replace("{Engine}", H(g.Engine))
             .Replace("{GameMode}", H(g.GameMode))
-            .Replace("{Status}", H(Core.Fields.CatalogLabels.Current.Status(g.CompletionStatus)))
-            .Replace("{UserRating}", g.UserRating < 0 ? "" : (g.UserRating / 10.0).ToString("0.0"))
-            .Replace("{CriticRating}", g.CriticRating < 0 ? "" : (g.CriticRating / 10.0).ToString("0.0"))
+            .Replace("{Status}", H(CatalogLabels.Current.Status(g.CompletionStatus)))
+            .Replace("{UserRating}", GameFieldValues.Rating(g.UserRating))
+            .Replace("{CriticRating}", GameFieldValues.Rating(g.CriticRating))
             .Replace("{Url}", H(g.Url))
             .Replace("{Description}", desc)
             .Replace("{Comments}", H(g.Comments))

@@ -1,6 +1,20 @@
 {
   "language": { "code": "pl", "name": "Polski", "author": "GameCatalog", "version": "1.0" },
-  "forms": {},
+  "forms": {
+    "HtmlPreview": {
+      "lblMissing.Text": "Podgląd HTML wymaga składnika Microsoft Edge WebView2 Runtime, którego nie znaleziono.",
+      "lnkInstall.Text": "Pobierz WebView2 Runtime"
+    },
+    "FindBar": {
+      "lblField.Text": "Szukaj w &polu:",
+      "lblValue.Text": "Szukana &wartość:",
+      "chkWhole.Text": "Całe pole",
+      "chkShow.Text": "Pokaż wyniki",
+      "chkReverse.Text": "Odwróć wyniki",
+      "btnNext.Text": "Znajdź następny",
+      "btnHide.Text": "Ukryj"
+    }
+  },
   "strings": {
     "Common.Yes": "Tak",
     "Common.No": "Nie",

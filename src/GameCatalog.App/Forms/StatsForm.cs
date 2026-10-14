@@ -1,3 +1,4 @@
+using GameCatalog.UI.Controls;
 using GameCatalog.UI.Components;
 using GameCatalog.UI.Icons;
 using GameCatalog.Core.Catalog;

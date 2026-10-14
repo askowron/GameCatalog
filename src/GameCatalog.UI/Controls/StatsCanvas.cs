@@ -1,9 +1,9 @@
-namespace GameCatalog.App;
+namespace GameCatalog.UI.Controls;
 
 /// <summary>
-/// Rysowanie wykresów statystyk (GDI+) — odpowiednik TChart z AMC stats.dfm:
-/// seria słupkowa (pola liczbowe/daty, etykiety co 90°, ColorEachPoint)
-/// lub seria kołowa (pola tekstowe, legenda, etykiety label+wartość).
+/// Statistics chart drawn with GDI+ — counterpart of the TChart in AMC stats.dfm:
+/// a bar series (numeric/date fields, labels rotated by 90 degrees, ColorEachPoint)
+/// or a pie series (text fields, legend, "label (value)" captions).
 /// </summary>
 public sealed class StatsCanvas : Control
 {
@@ -45,7 +45,7 @@ public sealed class StatsCanvas : Control
         Render(e.Graphics, ClientRectangle, ScrollOffset);
     }
 
-    /// <summary>Render pełnego wykresu (do zapisu/kopiowania, bez stronicowania).</summary>
+    /// <summary>Renders the whole chart (for saving/copying), without paging.</summary>
     public void RenderAll(Graphics g, Size size) => Render(g, new Rectangle(Point.Empty, size), 0, showAll: true);
 
     private void Render(Graphics g, Rectangle bounds, int offset, bool showAll = false)
@@ -113,7 +113,7 @@ public sealed class StatsCanvas : Control
                 var sz = g.MeasureString(v, smallFont);
                 g.DrawString(v, smallFont, Brushes.Black, x + (barW - sz.Width) / 2, plot.Bottom - h - sz.Height - 1);
             }
-            // etykieta pionowo (jak BottomAxis.LabelsAngle = 90 w AMC)
+            // vertical label (like BottomAxis.LabelsAngle = 90 in AMC)
             var state = g.Save();
             g.TranslateTransform(plot.Left + slot * i + slot / 2, plot.Bottom + 3);
             g.RotateTransform(-90);
