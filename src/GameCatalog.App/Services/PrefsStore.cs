@@ -53,26 +53,34 @@ public sealed class PrefsStore
 
     public static string PrefsPath() => Path.Combine(AppPaths.DataDirectory, "prefs.json");
 
-    public static PrefsStore Load()
+    /// <summary>File the preferences were loaded from; null for in-memory instances (tests).</summary>
+    [System.Text.Json.Serialization.JsonIgnore]
+    public string? FilePath { get; private set; }
+
+    public static PrefsStore Load(string? path = null)
     {
+        path ??= PrefsPath();
+        PrefsStore prefs;
         try
         {
-            var p = PrefsPath();
-            if (File.Exists(p))
-            {
-                var prefs = JsonSerializer.Deserialize<PrefsStore>(File.ReadAllText(p)) ?? new PrefsStore();
-                prefs.Theme = IconThemeImageList.NormalizeThemeId(prefs.Theme);
-                return prefs;
-            }
+            prefs = File.Exists(path)
+                ? JsonSerializer.Deserialize<PrefsStore>(File.ReadAllText(path)) ?? new PrefsStore()
+                : new PrefsStore();
         }
-        catch { }
-        return new PrefsStore();
+        catch (Exception ex) when (ex is JsonException or IOException or UnauthorizedAccessException)
+        {
+            prefs = new PrefsStore();
+        }
+        prefs.FilePath = path;
+        prefs.Theme = IconThemeImageList.NormalizeThemeId(prefs.Theme);
+        return prefs;
     }
 
     public void Save()
     {
-        try { File.WriteAllText(PrefsPath(), JsonSerializer.Serialize(this, new JsonSerializerOptions { WriteIndented = true })); }
-        catch { }
+        if (FilePath is null) return;
+        try { File.WriteAllText(FilePath, JsonSerializer.Serialize(this, new JsonSerializerOptions { WriteIndented = true })); }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException) { /* preferences are best effort */ }
     }
 
     public void PushRecent(string path)

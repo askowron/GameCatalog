@@ -1,3 +1,4 @@
+using GameCatalog.App.Services;
 using GameCatalog.UI.Components;
 using GameCatalog.UI.Icons;
 namespace GameCatalog.App;
@@ -27,16 +28,6 @@ public sealed class NumberDialog : Form
     }
 }
 
-/// <summary>Rozstrzygnięcie konfliktu numeru — odpowiednik opcji AMC z okna „Wybór numeru filmu”.</summary>
-public enum NumberConflictResolution
-{
-    /// <summary>Akceptuj duplikat (dwa rekordy o tym samym numerze).</summary>
-    AcceptDuplicate,
-    /// <summary>Nadaj inny numer istniejącemu rekordowi (dostanie kolejny wolny).</summary>
-    RenumberExisting,
-    /// <summary>Przesuwaj numer nowego rekordu, aż nie będzie zduplikowany.</summary>
-    ShiftNew,
-}
 
 /// <summary>Dialog wyboru numeru gry w stylu AMC (jak na zrzucie „Wybór numeru filmu”).</summary>
 public sealed class NumberConflictDialog : Form
