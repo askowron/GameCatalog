@@ -139,4 +139,16 @@ public sealed class CatalogSessionTests : IDisposable
         check.Open(PathOf("good.gc"));
         Assert.Single(check.Games.Games);
     }
+
+    [Fact]
+    public void MarkModified_SetsDirtyWithoutChanged()
+    {
+        var s = new CatalogSession(new PrefsStore());
+        s.New(PathOf("a.gc"));
+        int changed = 0;
+        s.Changed += (_, _) => changed++;
+        s.MarkModified();
+        Assert.True(s.IsDirty);
+        Assert.Equal(0, changed);
+    }
 }

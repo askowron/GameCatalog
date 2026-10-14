@@ -121,6 +121,9 @@ public sealed class CatalogSession(PrefsStore prefs)
         Changed?.Invoke(this, EventArgs.Empty);
     }
 
+    /// <summary>Marks unsaved changes without asking views to rebuild (single-field edits).</summary>
+    public void MarkModified() => SetDirty(true);
+
     private void SetDirty(bool value)
     {
         if (IsDirty == value) return;

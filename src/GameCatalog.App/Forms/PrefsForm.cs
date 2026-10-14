@@ -371,7 +371,21 @@ public sealed class PrefsForm : Form
         fo.Controls.Add(new Label { Text = "Katalog skryptów:", Dock = DockStyle.Top, Height = 20 });
         fo.Controls.Add(new TextBox { Dock = DockStyle.Top, ReadOnly = true, Text = GameCatalog.Scripting.GameScript.ScriptsDir() });
 
-        foreach (var p in _panels.Values) ControlLayout.FixDockOrder(p);
+        foreach (var p in _panels.Values) FixDockOrder(p);
+    }
+
+    /// <summary>
+    /// WinForms docks in reverse order of adding, so the children of every Panel are reversed to make the
+    /// display follow the build order (TableLayoutPanel is skipped).
+    /// </summary>
+    private static void FixDockOrder(Control parent)
+    {
+        var kids = parent.Controls.Cast<Control>().ToList();
+        if (parent is Panel)
+            foreach (var kid in kids)
+                parent.Controls.SetChildIndex(kid, 0);
+        foreach (var kid in kids)
+            FixDockOrder(kid);
     }
 
     private void BuildListManager(Panel page)

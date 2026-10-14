@@ -26,6 +26,9 @@ public sealed class GameList
 
     public bool Remove(int number) => _games.RemoveAll(g => g.Number == number) > 0;
 
+    /// <summary>Removes this instance only — other games with the same number stay.</summary>
+    public bool Remove(Game game) => _games.Remove(game);
+
     public Game? Find(int number) => _games.FirstOrDefault(g => g.Number == number);
 
     public void Clear() => _games.Clear();

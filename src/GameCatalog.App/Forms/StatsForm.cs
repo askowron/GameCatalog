@@ -251,7 +251,7 @@ public sealed class StatsForm : Form
         if (cat.IsNumeric) return ComputeNumeric(games, cat);
         // tekstowe → kołowy (jak pie series z grupowaniem)
         var groups = games
-            .Select(g => FieldValues.Get(g, cat.Tag))
+            .Select(g => GameFieldValues.Get(g, cat.Tag))
             .Select(v => string.IsNullOrWhiteSpace(v) ? "< brak >" : v)
             .GroupBy(v => v)
             .Select(gr => (Label: gr.Key, Count: (double)gr.Count()))

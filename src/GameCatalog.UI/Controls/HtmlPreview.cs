@@ -32,17 +32,46 @@ public partial class HtmlPreview : UserControl
         if (DesignMode) return;   // never start WebView2 inside the Visual Studio designer
         await (_initialization ??= InitializeAsync());
         if (IsDisposed || !IsAvailable || webView.CoreWebView2 is null) return;
-        if (html.Length < NavigateToStringLimit)
-        {
-            webView.NavigateToString(html);
-        }
-        else
+        if (html.Length >= NavigateToStringLimit)
         {
             var file = Path.Combine(Path.GetTempPath(), "gamecatalog_preview.html");
             await File.WriteAllTextAsync(file, html);
-            if (IsDisposed) return;
-            webView.CoreWebView2.Navigate(new Uri(file).AbsoluteUri);
+            if (IsDisposed || webView.CoreWebView2 is null) return;
+            await NavigateAndWaitAsync(() => webView.CoreWebView2.Navigate(new Uri(file).AbsoluteUri));
         }
+        else
+        {
+            await NavigateAndWaitAsync(() => webView.NavigateToString(html));
+        }
+    }
+
+    /// <summary>
+    /// Starts a navigation and completes when it finished (successfully or not), so printing right
+    /// after showing prints the new page. A navigation superseded by a newer one also completes.
+    /// </summary>
+    private Task NavigateAndWaitAsync(Action navigate)
+    {
+        var completed = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        void Finish()
+        {
+            webView.NavigationCompleted -= OnCompleted;
+            Disposed -= OnDisposed;
+            completed.TrySetResult();
+        }
+        void OnCompleted(object? sender, CoreWebView2NavigationCompletedEventArgs e) => Finish();
+        void OnDisposed(object? sender, EventArgs e) => Finish();   // never leave the caller waiting
+        webView.NavigationCompleted += OnCompleted;
+        Disposed += OnDisposed;
+        try
+        {
+            navigate();
+        }
+        catch
+        {
+            Finish();
+            throw;
+        }
+        return completed.Task;
     }
 
     public void Print()

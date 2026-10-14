@@ -73,4 +73,37 @@ public class GameListTests
         Assert.Equal("Completed", GameList.GroupCaption("CompletionStatus", "Completed", labels));
         Assert.Equal("FPS", GameList.GroupCaption("Genre", "FPS", labels));
     }
+
+    [Fact]
+    public void RemoveByInstance_KeepsDuplicateNumber()
+    {
+        var list = new GameList();
+        var a = new Game { Number = 1, Title = "A" };
+        var b = new Game { Number = 1, Title = "B" };
+        list.Add(a);
+        list.Add(b);
+        Assert.True(list.Remove(a));
+        Assert.Same(b, Assert.Single(list.Games));
+    }
+
+    [Fact]
+    public void CopyFrom_OverwritesFieldsWithDeepCopies()
+    {
+        var source = new Game { Number = 3, Title = "S", UserRating = 50, CoverImage = new byte[] { 1 } };
+        source.Extras.Add(new GameExtra { Title = "E" });
+        source.CustomValues["K"] = "V";
+        var target = new Game { Title = "T" };
+
+        target.CopyFrom(source);
+        source.Extras[0].Title = "changed";
+        source.CoverImage[0] = 9;
+        source.CustomValues["K"] = "changed";
+
+        Assert.Equal(3, target.Number);
+        Assert.Equal("S", target.Title);
+        Assert.Equal(50, target.UserRating);
+        Assert.Equal("E", target.Extras[0].Title);
+        Assert.Equal(1, target.CoverImage![0]);
+        Assert.Equal("V", target.CustomValues["K"]);
+    }
 }

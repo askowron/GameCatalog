@@ -98,4 +98,14 @@ public sealed class Game
         if (CoverImage is not null) copy.CoverImage = (byte[])CoverImage.Clone();
         return copy;
     }
+
+    /// <summary>Overwrites every field with deep copies of <paramref name="source"/>'s values (used by undo).</summary>
+    public void CopyFrom(Game source)
+    {
+        foreach (var p in typeof(Game).GetProperties())
+            if (p.CanRead && p.CanWrite) p.SetValue(this, p.GetValue(source));
+        Extras = source.Extras.Select(e => e.Clone()).ToList();
+        CustomValues = new Dictionary<string, string>(source.CustomValues, StringComparer.OrdinalIgnoreCase);
+        CoverImage = source.CoverImage is null ? null : (byte[])source.CoverImage.Clone();
+    }
 }
