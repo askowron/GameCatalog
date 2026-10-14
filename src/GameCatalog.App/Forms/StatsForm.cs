@@ -1,4 +1,5 @@
 using GameCatalog.Core.Catalog;
+using GameCatalog.Core.Fields;
 using GameCatalog.Core.Models;
 
 namespace GameCatalog.App;
@@ -27,7 +28,7 @@ public sealed class StatsForm : Form
         public override string ToString() => Name;
     }
 
-    private readonly GameCatalogModel _model;
+    private readonly GameList _model;
     private readonly HashSet<int> _visible;
     private readonly int? _selected;
     private readonly string _catalogPath;
@@ -48,7 +49,7 @@ public sealed class StatsForm : Form
     private readonly ToolStripMenuItem _optGroup = new("Grupuj wartości") { CheckOnClick = true, Checked = true };
     private ImageList _icons = null!;
 
-    public StatsForm(GameCatalogModel model, HashSet<int> visibleNumbers, int? selectedNumber, string catalogPath)
+    public StatsForm(GameList model, HashSet<int> visibleNumbers, int? selectedNumber, string catalogPath)
     {
         _model = model;
         _visible = visibleNumbers;
@@ -144,7 +145,7 @@ public sealed class StatsForm : Form
             _lstCategories.Items.Add(new Category
             {
                 Tag = f.Tag,
-                Name = f.DisplayName,
+                Name = CatalogLabels.Current.Field(f.Tag),
                 IsDate = f.Tag is "DateAdded" or "DateFinished" or "LastPlayed",
                 IsNumeric = f.Tag is "ReleaseYear" or "PlaytimeHours" or "UserRating" or "CriticRating" or "DiskCount" or "ColorTag",
                 Increment = f.Tag switch

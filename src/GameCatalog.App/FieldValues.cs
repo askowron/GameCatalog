@@ -1,4 +1,5 @@
 using GameCatalog.Core.Catalog;
+using GameCatalog.Core.Fields;
 using GameCatalog.Core.Models;
 
 namespace GameCatalog.App;
@@ -11,5 +12,5 @@ public static class FieldValues
     /// <summary>Pola do szukania/sortowania (jak cbxField w AMC).</summary>
     public static IReadOnlyList<(string Tag, string Name)> SearchableFields() =>
         GameFields.All.Where(f => f.Tag is not ("DisplayTitle" or "NbExtras"))
-            .Select(f => (f.Tag, f.DisplayName)).ToList();
+            .Select(f => (f.Tag, CatalogLabels.Current.Field(f.Tag))).ToList();
 }

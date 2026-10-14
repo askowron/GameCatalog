@@ -2,6 +2,7 @@ using System.ComponentModel;
 using System.Text;
 using System.Text.Json;
 using GameCatalog.Core.Catalog;
+using GameCatalog.Core.Fields;
 using GameCatalog.Core.Models;
 using GameCatalog.Core.Services;
 using GameCatalog.Storage;
@@ -31,7 +32,7 @@ public sealed class MainForm : Form
         return Color.FromArgb(c & 0xFF, (c >> 8) & 0xFF, (c >> 16) & 0xFF);
     }
 
-    private readonly GameCatalogModel _model = new();
+    private readonly GameList _model = new();
     private readonly List<LoanRecord> _loans = new();
     private SqliteGameCatalogStore _store = null!;
     private string _dbPath = "";
@@ -310,7 +311,7 @@ public sealed class MainForm : Form
         var mSort = new ToolStripMenuItem("Sortuj &wg") { ImageIndex = (int)AmcIcon.SortAscend };
         foreach (var tag in new[] { "Number", "Title", "Genre", "Platform", "Developer", "Publisher", "ReleaseYear", "UserRating", "CriticRating", "PlaytimeHours", "CompletionStatus", "DateAdded", "LastPlayed", "Store" })
         {
-            var item = new ToolStripMenuItem(GameFields.DisplayNameOf(tag)) { CheckOnClick = false, Tag = tag };
+            var item = new ToolStripMenuItem(CatalogLabels.Current.Field(tag)) { CheckOnClick = false, Tag = tag };
             item.Click += (_, _) => SetSort((string)item.Tag!);
             _sortMenuItems[tag] = item;
             mSort.DropDownItems.Add(item);
@@ -329,7 +330,7 @@ public sealed class MainForm : Form
         mGroup.DropDownItems.Add(new ToolStripSeparator());
         foreach (var tag in GameFields.GroupableTags)
         {
-            var item = new ToolStripMenuItem(GameFields.DisplayNameOf(tag)) { Tag = tag };
+            var item = new ToolStripMenuItem(CatalogLabels.Current.Field(tag)) { Tag = tag };
             item.Click += (_, _) => SetGroup((string)item.Tag!);
             _groupMenuItems[tag] = item;
             mGroup.DropDownItems.Add(item);
@@ -452,7 +453,7 @@ public sealed class MainForm : Form
         foreach (var tag in GameFields.GroupableTags)
         {
             string t = tag;
-            var item = MI(GameFields.DisplayNameOf(t), (_, _) => SetGroup(t), AmcIcon.Group);
+            var item = MI(CatalogLabels.Current.Field(t), (_, _) => SetGroup(t), AmcIcon.Group);
             item.Checked = _groupTag == t;
             _tbGroup.DropDownItems.Add(item);
         }
@@ -554,7 +555,7 @@ public sealed class MainForm : Form
     {
         _list.Columns.Clear();
         foreach (var (tag, width) in _columns)
-            _list.Columns.Add(tag == "Title" ? "Tytuł" : GameFields.DisplayNameOf(tag), width);
+            _list.Columns.Add(tag == "Title" ? "Tytuł" : CatalogLabels.Current.Field(tag), width);
     }
 
     // ================= ŚRODEK: zakładki jak w AMC (Pola gry / Pola niestandardowe / Wszystkie pola / Dodatki + HTML) =================
@@ -754,7 +755,7 @@ public sealed class MainForm : Form
         IEnumerable<Game> q = _model.Games;
         if (_findOnly is not null)
             q = q.Where(g => _findOnly.Contains(g.Number));
-        return GameCatalogModel.Sort(q, _sortTag, _ascending, _prefs.NaturalSort).ToList();
+        return GameList.Sort(q, _sortTag, _ascending, _prefs.NaturalSort).ToList();
     }
 
     private void RefreshCatalogCombos()
@@ -849,9 +850,10 @@ public sealed class MainForm : Form
             Dictionary<string, ListViewGroup> groups = new();
             if (!string.IsNullOrEmpty(_groupTag))
             {
-                foreach (var grp in GameCatalogModel.GroupBy(view, _groupTag))
+                foreach (var grp in GameList.GroupBy(view, _groupTag))
                 {
-                    string name = _prefs.ShowGroupCount ? $"{grp.Key} ({grp.Count()})" : grp.Key;
+                    string caption = GameList.GroupCaption(_groupTag, grp.Key, CatalogLabels.Current);
+                    string name = _prefs.ShowGroupCount ? $"{caption} ({grp.Count()})" : caption;
                     var lg = new ListViewGroup(name, HorizontalAlignment.Left);
                     _list.Groups.Add(lg);
                     groups[grp.Key] = lg;
@@ -866,7 +868,7 @@ public sealed class MainForm : Form
                 if (_thumbs) item.ImageIndex = _thumbIndex.GetValueOrDefault(g.Number, 0);
                 foreach (var (tag, _) in _columns.Skip(1))
                     item.SubItems.Add(tag == "Title" ? FormattedTitle(g) : FieldValues.Get(g, tag));
-                if (groups.TryGetValue(GroupKey(g), out var lg)) item.Group = lg;
+                if (groups.TryGetValue(GameList.GroupKeyOf(g, _groupTag), out var lg)) item.Group = lg;
                 _list.Items.Add(item);
             }
             _list.EndUpdate();
@@ -882,21 +884,6 @@ public sealed class MainForm : Form
         finally { _refreshing = false; }
         SelectFromList();
     }
-
-    private string GroupKey(Game g) => _groupTag switch
-    {
-        "Genre" => string.IsNullOrWhiteSpace(g.Genre) ? "(brak)" : g.Genre,
-        "Platform" => string.IsNullOrWhiteSpace(g.Platform) ? "(brak)" : g.Platform,
-        "Developer" => string.IsNullOrWhiteSpace(g.Developer) ? "(brak)" : g.Developer,
-        "Publisher" => string.IsNullOrWhiteSpace(g.Publisher) ? "(brak)" : g.Publisher,
-        "Store" => string.IsNullOrWhiteSpace(g.Store) ? "(brak)" : g.Store,
-        "CompletionStatus" => GameCatalogModel.StatusLabel(g.CompletionStatus),
-        "ReleaseYear" => g.ReleaseYear > 0 ? g.ReleaseYear.ToString() : "(brak)",
-        "Pegi" => string.IsNullOrWhiteSpace(g.Pegi) ? "(brak)" : g.Pegi,
-        "GameMode" => string.IsNullOrWhiteSpace(g.GameMode) ? "(brak)" : g.GameMode,
-        "Engine" => string.IsNullOrWhiteSpace(g.Engine) ? "(brak)" : g.Engine,
-        _ => "(wszystkie)",
-    };
 
     private Game? SelectedGame()
     {
@@ -967,7 +954,7 @@ public sealed class MainForm : Form
                         if (DateTime.TryParse(v, out var dd)) { p.Value = dd; p.Checked = true; }
                         else { p.Value = DateTime.Today; p.Checked = false; }
                         break;
-                    case CheckBox c: c.Checked = v == "Tak" || v == "1"; break;
+                    case CheckBox c: c.Checked = YesNo.Parse(v); break;
                 }
             }
         }
@@ -1094,7 +1081,7 @@ public sealed class MainForm : Form
             ComboBox cb => cb.Text,
             NumericUpDown n => n.Value.ToString(),
             DateTimePicker p => p.Checked ? p.Value.ToString("yyyy-MM-dd") : "",
-            CheckBox c => c.Checked ? "Tak" : "",
+            CheckBox c => c.Checked ? YesNo.StoredTrue : "",
             _ => "",
         };
         string old = g.CustomValues.TryGetValue(tag, out var cv) ? cv : "";
@@ -1148,7 +1135,7 @@ public sealed class MainForm : Form
         _allFieldsGrid.Rows.Clear();
         if (_current is null) return;
         foreach (var f in GameFields.All)
-            _allFieldsGrid.Rows.Add(f.DisplayName, FieldValues.Get(_current, f.Tag));
+            _allFieldsGrid.Rows.Add(CatalogLabels.Current.Field(f.Tag), FieldValues.Get(_current, f.Tag));
         foreach (var d in _model.CustomFieldDefs)
             _allFieldsGrid.Rows.Add(d.Name, _current.CustomValues.TryGetValue(d.Tag, out var v) ? v : "");
     }
@@ -1936,64 +1923,7 @@ public sealed class MainForm : Form
     private static void ApplyScriptResult(Game g, IEnumerable<(string Tag, string Value)> fields)
     {
         foreach (var (tag, value) in fields)
-        {
-            if (tag.StartsWith("custom:", StringComparison.Ordinal))
-            {
-                string t = tag["custom:".Length..];
-                if (value == "") g.CustomValues.Remove(t);
-                else g.CustomValues[t] = value;
-                continue;
-            }
-            switch (tag)
-            {
-                case "UserRating":
-                case "CriticRating":
-                    if (double.TryParse(value.Replace(',', '.'),
-                            System.Globalization.NumberStyles.Float,
-                            System.Globalization.CultureInfo.InvariantCulture, out var r))
-                        typeof(Game).GetProperty(tag)!.SetValue(g, (int)Math.Round(r * 10));
-                    break;
-                case "ReleaseYear":
-                case "DiskCount":
-                case "ColorTag":
-                    if (int.TryParse(value, out var iv)) typeof(Game).GetProperty(tag)!.SetValue(g, iv);
-                    break;
-                case "PlaytimeHours":
-                    if (double.TryParse(value.Replace(',', '.'),
-                            System.Globalization.NumberStyles.Float,
-                            System.Globalization.CultureInfo.InvariantCulture, out var dv))
-                        g.PlaytimeHours = dv;
-                    break;
-                case "Checked":
-                    g.Checked = value == "Tak" || value == "1" || value.Equals("true", StringComparison.OrdinalIgnoreCase);
-                    break;
-                case "CompletionStatus":
-                    g.CompletionStatus = ParseStatus(value);
-                    break;
-                case "DateAdded":
-                case "DateFinished":
-                case "LastPlayed":
-                    if (DateTime.TryParse(value, out var dt)) typeof(Game).GetProperty(tag)!.SetValue(g, (DateTime?)dt);
-                    break;
-                default:
-                    var prop = typeof(Game).GetProperty(tag,
-                        System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.IgnoreCase);
-                    if (prop is not null && prop.PropertyType == typeof(string) && prop.CanWrite)
-                        prop.SetValue(g, value);
-                    else
-                        g.CustomValues[tag] = value;
-                    break;
-            }
-        }
-    }
-
-    private static CompletionStatus ParseStatus(string v)
-    {
-        foreach (CompletionStatus s in Enum.GetValues<CompletionStatus>())
-            if (GameCatalogModel.StatusLabel(s).Equals(v, StringComparison.OrdinalIgnoreCase)
-                || s.ToString().Equals(v, StringComparison.OrdinalIgnoreCase))
-                return s;
-        return CompletionStatus.Backlog;
+            GameFieldWriter.Set(g, tag, value);
     }
 
     // ================= NOWE AKCJE MENU (jak w AMC) =================

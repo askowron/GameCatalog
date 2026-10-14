@@ -1,8 +1,8 @@
 namespace GameCatalog.Core.Models;
 
 /// <summary>
-/// Dodatek / DLC — odpowiednik AMC TMovieExtra (Extras).
-/// W grach: DLC fabularne, rozszerzenia, przepustki, mody, OST.
+/// Add-on / DLC — counterpart of AMC TMovieExtra (Extras).
+/// For games: story DLC, expansions, passes, mods, soundtracks.
 /// </summary>
 public sealed class GameExtra
 {

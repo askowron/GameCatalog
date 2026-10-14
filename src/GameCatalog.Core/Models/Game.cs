@@ -1,13 +1,13 @@
 namespace GameCatalog.Core.Models;
 
 /// <summary>
-/// Gra — główny rekord katalogu. Odpowiednik AMC TMovie,
-/// z polami filmowymi przeportowanymi na growe (patrz <see cref="Catalog.GameFields"/>).
-/// Mapowanie AMC→Game:
+/// Game — the main catalog record. Counterpart of AMC TMovie,
+/// with movie fields ported to game fields (see <see cref="Fields.GameFields"/>).
+/// AMC→Game mapping:
 /// Director→Developer, Producer→Publisher, Writer→Designer,
 /// Actors→VoiceActors, Category→Genre, Certification→Pegi,
 /// Length→PlaytimeHours, DateWatched→DateFinished, VideoFormat→Engine,
-/// AudioFormat→GameMode + nowe: Platform, CompletionStatus, LastPlayed.
+/// AudioFormat→GameMode + new: Platform, CompletionStatus, LastPlayed.
 /// </summary>
 public sealed class Game
 {
@@ -15,7 +15,7 @@ public sealed class Game
     public bool Checked { get; set; }
     public int ColorTag { get; set; }
 
-    // Nośnik / źródło (jak w AMC: Media, MediaType, Source)
+    // Media / source (as in AMC: Media, MediaType, Source)
     public string MediaLabel { get; set; } = string.Empty;
     public string MediaType { get; set; } = "Cyfrowa";
     public string Store { get; set; } = string.Empty;
@@ -23,21 +23,21 @@ public sealed class Game
     public DateTime? DateAdded { get; set; }
     public string Borrower { get; set; } = string.Empty;
 
-    // Postęp gracza
+    // Player progress
     public DateTime? DateFinished { get; set; }
     public DateTime? LastPlayed { get; set; }
     public CompletionStatus CompletionStatus { get; set; } = CompletionStatus.Backlog;
 
-    // Oceny jak w AMC: -1 = brak; w UI 0..10
+    // Ratings as in AMC: -1 = none; shown as 0..10 in the UI
     public int UserRating { get; set; } = -1;
     public int CriticRating { get; set; } = -1;
 
-    // Tytuły
+    // Titles
     public string Title { get; set; } = string.Empty;
     public string LocalizedTitle { get; set; } = string.Empty;
     public string DisplayTitle => string.IsNullOrWhiteSpace(LocalizedTitle) ? Title : $"{Title} / {LocalizedTitle}";
 
-    // Twórcy (przeportowane z Director/Producer/Writer/Composer/Actors)
+    // Creators (ported from Director/Producer/Writer/Composer/Actors)
     public string Developer { get; set; } = string.Empty;
     public string Publisher { get; set; } = string.Empty;
     public string Designer { get; set; } = string.Empty;
@@ -45,7 +45,7 @@ public sealed class Game
     public string VoiceActors { get; set; } = string.Empty;
     public string Country { get; set; } = string.Empty;
 
-    // Dane wydawnicze i klasyfikacja
+    // Publishing data and classification
     public int ReleaseYear { get; set; }
     public double PlaytimeHours { get; set; }
     public string Genre { get; set; } = string.Empty;
@@ -56,7 +56,7 @@ public sealed class Game
     public string Description { get; set; } = string.Empty;
     public string Comments { get; set; } = string.Empty;
 
-    // Pliki / technikalia (przeportowane z FilePath/Video*/Audio*/Resolution/...)
+    // Files / technical data (ported from FilePath/Video*/Audio*/Resolution/...)
     public string InstallPath { get; set; } = string.Empty;
     public string Engine { get; set; } = string.Empty;
     public string Version { get; set; } = string.Empty;
@@ -68,15 +68,15 @@ public sealed class Game
     public string SizeGb { get; set; } = string.Empty;
     public int DiskCount { get; set; }
 
-    // Okładka (w AMC: Picture) — bajty PNG/JPG, null = brak
+    // Cover (AMC: Picture) — PNG/JPG bytes, null = none
     public byte[]? CoverImage { get; set; }
     public bool HasCover => CoverImage is { Length: > 0 };
 
-    // Dodatki/DLC (w AMC: Extras)
+    // Add-ons/DLC (AMC: Extras)
     public List<GameExtra> Extras { get; set; } = new();
     public int NbExtras => Extras.Count;
 
-    // Pola własne (w AMC: CustomFields) — słownik Tag→Wartość
+    // Custom fields (AMC: CustomFields) — Tag→Value dictionary
     public Dictionary<string, string> CustomValues { get; set; } = new(StringComparer.OrdinalIgnoreCase);
 
     public string GetFormattedTitle(string format = "{title} ({year})")

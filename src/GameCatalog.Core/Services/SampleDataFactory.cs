@@ -2,7 +2,7 @@ using GameCatalog.Core.Models;
 
 namespace GameCatalog.Core.Services;
 
-/// <summary>Przykładowe dane startowe (3 gry + DLC), żeby aplikacja nie startowała pusta.</summary>
+/// <summary>Sample start-up data (3 games + DLC) so the application does not start empty.</summary>
 public static class SampleDataFactory
 {
     public static IEnumerable<Game> CreateSamples() => new List<Game>

@@ -7,13 +7,13 @@ namespace GameCatalog.App;
 /// <summary>Wypożyczenia — odpowiednik AMC loan.pas + loanhistory.pas.</summary>
 public sealed class LoanForm : Form
 {
-    private readonly GameCatalogModel _model;
+    private readonly GameList _model;
     private readonly List<LoanRecord> _loans;
     private readonly DataGridView _grid = new() { Dock = DockStyle.Fill };
     private readonly ComboBox _cbGame = new() { DropDownStyle = ComboBoxStyle.DropDownList, Width = 260 };
     private readonly TextBox _txtBorrower = new() { Width = 160 };
 
-    public LoanForm(GameCatalogModel model, List<LoanRecord> loans)
+    public LoanForm(GameList model, List<LoanRecord> loans)
     {
         _model = model;
         _loans = loans;

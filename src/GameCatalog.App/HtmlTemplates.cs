@@ -90,7 +90,7 @@ public static class HtmlTemplates
             .Replace("{Store}", H(g.Store))
             .Replace("{Engine}", H(g.Engine))
             .Replace("{GameMode}", H(g.GameMode))
-            .Replace("{Status}", H(Core.Catalog.GameCatalogModel.StatusLabel(g.CompletionStatus)))
+            .Replace("{Status}", H(Core.Fields.CatalogLabels.Current.Status(g.CompletionStatus)))
             .Replace("{UserRating}", g.UserRating < 0 ? "" : (g.UserRating / 10.0).ToString("0.0"))
             .Replace("{CriticRating}", g.CriticRating < 0 ? "" : (g.CriticRating / 10.0).ToString("0.0"))
             .Replace("{Url}", H(g.Url))

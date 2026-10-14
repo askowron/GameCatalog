@@ -1,5 +1,6 @@
 using System.Reflection;
 using GameCatalog.Core.Catalog;
+using GameCatalog.Core.Fields;
 using GameCatalog.Core.Models;
 
 namespace GameCatalog.App;
@@ -25,7 +26,7 @@ public sealed class ScriptResultForm : Form
         {
             string old = GameFieldValues.Get(game, kv.Key);
             if (old == kv.Value) continue;
-            string name = GameFields.DisplayNameOf(kv.Key);
+            string name = CatalogLabels.Current.Field(kv.Key);
             _fields.Items.Add($"{name}: „{Trunc(old)}” → „{Trunc(kv.Value)}”", true);
             _checked.Add((kv.Key, kv.Value));
         }

@@ -1,6 +1,6 @@
 namespace GameCatalog.Core.Models;
 
-/// <summary>Wypożyczenie gry — odpowiednik AMC Loan + LoanHistory.</summary>
+/// <summary>Game loan — counterpart of AMC Loan + LoanHistory.</summary>
 public sealed class LoanRecord
 {
     public int Id { get; set; }

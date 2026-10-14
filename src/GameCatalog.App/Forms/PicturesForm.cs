@@ -6,10 +6,10 @@ namespace GameCatalog.App;
 /// <summary>Zarządzanie okładkami — przegląd gier z/bez okładki, wczytywanie, usuwanie, eksport.</summary>
 public sealed class PicturesForm : Form
 {
-    private readonly GameCatalogModel _model;
+    private readonly GameList _model;
     private readonly DataGridView _grid = new() { Dock = DockStyle.Fill };
 
-    public PicturesForm(GameCatalogModel model)
+    public PicturesForm(GameList model)
     {
         _model = model;
         Text = "Zarządzanie obrazkami";

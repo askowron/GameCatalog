@@ -1,6 +1,7 @@
 using System.Net;
 using System.Text.RegularExpressions;
 using GameCatalog.Core.Catalog;
+using GameCatalog.Core.Fields;
 using GameCatalog.Core.Models;
 
 namespace GameCatalog.Scripting;

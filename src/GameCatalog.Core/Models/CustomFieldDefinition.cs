@@ -1,6 +1,6 @@
 namespace GameCatalog.Core.Models;
 
-/// <summary>Definicja pola własnego (odpowiednik AMC TCustomFieldProperties).</summary>
+/// <summary>Custom field definition (counterpart of AMC TCustomFieldProperties).</summary>
 public sealed class CustomFieldDefinition
 {
     public string Tag { get; set; } = string.Empty;

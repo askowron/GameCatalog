@@ -77,7 +77,7 @@ CREATE TABLE IF NOT EXISTS CustomValues(
     }
 
     // ---------- zapis całego katalogu (jak AMC Save) ----------
-    public void SaveAll(GameCatalogModel model, IEnumerable<LoanRecord> loans)
+    public void SaveAll(GameList model, IEnumerable<LoanRecord> loans)
     {
         Initialize();
         using var c = Open();
@@ -238,7 +238,7 @@ ON CONFLICT(Number) DO UPDATE SET Checked=excluded.Checked,ColorTag=excluded.Col
     }
 
     // ---------- odczyt (jak AMC Load) ----------
-    public (List<Game> Games, List<LoanRecord> Loans) LoadAll(GameCatalogModel model)
+    public (List<Game> Games, List<LoanRecord> Loans) LoadAll(GameList model)
     {
         Initialize();
         var games = new List<Game>();

@@ -1,19 +1,19 @@
 namespace GameCatalog.Core.Models;
 
 /// <summary>
-/// Status ukończenia gry (odpowiednik AMC "DateWatched" rozszerzony o workflow gracza).
+/// Completion status (AMC "DateWatched" extended with a player workflow).
 /// </summary>
 public enum CompletionStatus
 {
-    Backlog = 0,      // do zagrania
-    Playing = 1,      // w trakcie
-    Completed = 2,    // ukończona
-    Completed100 = 3, // ukończona na 100% / platyna
-    Paused = 4,       // wstrzymana
-    Dropped = 5       // porzucona
+    Backlog = 0,      // not started
+    Playing = 1,      // in progress
+    Completed = 2,    // finished
+    Completed100 = 3, // 100% / platinum
+    Paused = 4,       // on hold
+    Dropped = 5       // abandoned
 }
 
-/// <summary>Platforma sprzętowa (pole growе — w AMC odpowiadało VideoFormat/Resolution).</summary>
+/// <summary>Hardware platform (game-specific field; in AMC it corresponded to VideoFormat/Resolution).</summary>
 public static class Platforms
 {
     public static readonly string[] All =
@@ -23,7 +23,7 @@ public static class Platforms
     };
 }
 
-/// <summary>Tryb gry (w AMC: AudioFormat).</summary>
+/// <summary>Game mode (AMC: AudioFormat).</summary>
 public static class GameModes
 {
     public static readonly string[] All =
@@ -32,7 +32,7 @@ public static class GameModes
     };
 }
 
-/// <summary>Sklep / źródło pozyskania (w AMC: Source).</summary>
+/// <summary>Store / acquisition source (AMC: Source).</summary>
 public static class Stores
 {
     public static readonly string[] All =
@@ -42,13 +42,13 @@ public static class Stores
     };
 }
 
-/// <summary>Typ nośnika (w AMC: MediaType).</summary>
+/// <summary>Media type (AMC: MediaType).</summary>
 public static class MediaTypes
 {
     public static readonly string[] All = { "Cyfrowa", "Fizyczna", "Subskrypcja" };
 }
 
-/// <summary>Kategoria dodatku/DLC (odpowiednik AMC Extra.Category).</summary>
+/// <summary>Add-on/DLC category (counterpart of AMC Extra.Category).</summary>
 public static class ExtraCategories
 {
     public static readonly string[] All =

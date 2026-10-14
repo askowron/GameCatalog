@@ -1,5 +1,6 @@
 using System.Text;
 using GameCatalog.Core.Catalog;
+using GameCatalog.Core.Fields;
 using GameCatalog.Core.Models;
 
 namespace GameCatalog.Storage;
@@ -21,7 +22,7 @@ public static class CatalogTransfer
         foreach (var g in games)
             sb.AppendLine(string.Join(delimiter, g.Number, Csv(g.Title, delimiter), Csv(g.LocalizedTitle, delimiter), Csv(g.Developer, delimiter),
                 Csv(g.Publisher, delimiter), g.ReleaseYear, Csv(g.Genre, delimiter), Csv(g.Platform, delimiter),
-                GameCatalogModel.StatusLabel(g.CompletionStatus),
+                CatalogLabels.Current.Status(g.CompletionStatus),
                 g.UserRating < 0 ? "" : (g.UserRating / 10.0).ToString("0.0"),
                 g.CriticRating < 0 ? "" : (g.CriticRating / 10.0).ToString("0.0"),
                 g.PlaytimeHours, Csv(g.Store, delimiter), Csv(g.Engine, delimiter), Csv(g.Description, delimiter)));
@@ -62,7 +63,7 @@ public static class CatalogTransfer
         sb.AppendLine($"<h1>{System.Net.WebUtility.HtmlEncode(title)}</h1>");
         sb.AppendLine("<table><tr><th>#</th><th>Tytuł</th><th>Developer</th><th>Rok</th><th>Gatunek</th><th>Platforma</th><th>Status</th><th>Ocena</th><th>Czas (h)</th></tr>");
         foreach (var g in games)
-            sb.AppendLine($"<tr><td>{g.Number}</td><td>{System.Net.WebUtility.HtmlEncode(g.Title)}</td><td>{System.Net.WebUtility.HtmlEncode(g.Developer)}</td><td>{g.ReleaseYear}</td><td>{System.Net.WebUtility.HtmlEncode(g.Genre)}</td><td>{System.Net.WebUtility.HtmlEncode(g.Platform)}</td><td>{GameCatalogModel.StatusLabel(g.CompletionStatus)}</td><td>{(g.UserRating < 0 ? "–" : (g.UserRating / 10.0).ToString("0.0"))}</td><td>{g.PlaytimeHours}</td></tr>");
+            sb.AppendLine($"<tr><td>{g.Number}</td><td>{System.Net.WebUtility.HtmlEncode(g.Title)}</td><td>{System.Net.WebUtility.HtmlEncode(g.Developer)}</td><td>{g.ReleaseYear}</td><td>{System.Net.WebUtility.HtmlEncode(g.Genre)}</td><td>{System.Net.WebUtility.HtmlEncode(g.Platform)}</td><td>{CatalogLabels.Current.Status(g.CompletionStatus)}</td><td>{(g.UserRating < 0 ? "–" : (g.UserRating / 10.0).ToString("0.0"))}</td><td>{g.PlaytimeHours}</td></tr>");
         sb.AppendLine("</table></body></html>");
         File.WriteAllText(path, sb.ToString(), Encoding.UTF8);
     }
