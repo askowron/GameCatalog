@@ -44,14 +44,35 @@ public class GameListViewTests
     }
 
     [Fact]
-    public void Display_DoesNotRaiseCheckedEvents()
+    public void DisplayAndUpdateItem_DoNotRaiseCheckedEvents()
     {
-        var lv = new GameListView();
+        using var lv = new GameListView();
         lv.SetColumns(new[] { ("Number", 40) }, t => t);
+        lv.CreateControl();   // ItemChecked only fires with a window handle
         int raised = 0;
         lv.GameCheckedChanged += (_, _) => raised++;
         lv.Display(new[] { new GameListItem(1, true, 0, new[] { "1" }, "") }, Array.Empty<GameListGroup>());
+        lv.UpdateItem(new GameListItem(1, false, 0, new[] { "1" }, ""));
         Assert.Equal(0, raised);
+    }
+
+    [Fact]
+    public void Display_RaisesSelectionEventOnlyWhenSelectedGameChanges()
+    {
+        using var lv = Create();
+        lv.CreateControl();
+        Assert.True(lv.SelectNumber(2));
+        int raised = 0;
+        lv.SelectedGameChanged += (_, _) => raised++;
+        var same = new[] { new GameListItem(1, true, 0, new[] { "1", "Doom" }, "FPS"), new GameListItem(2, false, 1, new[] { "2", "Abe" }, "") };
+
+        lv.Display(same, Array.Empty<GameListGroup>());
+        Assert.Equal(0, raised);
+        Assert.Equal(2, lv.SelectedNumber);
+
+        lv.Display(same.Take(1).ToArray(), Array.Empty<GameListGroup>());
+        Assert.Equal(1, raised);
+        Assert.Null(lv.SelectedNumber);
     }
 
     [Fact]

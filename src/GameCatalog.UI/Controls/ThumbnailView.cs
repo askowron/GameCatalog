@@ -5,6 +5,7 @@ namespace GameCatalog.UI.Controls;
 /// <summary>Cover thumbnails of the visible games (AMC ThumbsViewer / rkSmartView).</summary>
 public sealed class ThumbnailView : ListView
 {
+    private bool _filling;
     private readonly ImageList _images = new() { ImageSize = new Size(64, 64), ColorDepth = ColorDepth.Depth32Bit };
 
     public ThumbnailView()
@@ -26,23 +27,37 @@ public sealed class ThumbnailView : ListView
 
     public void Display(IReadOnlyList<(int Number, string Caption, byte[]? Cover)> items)
     {
-        int? selected = SelectedNumber;
+        int? before = SelectedNumber;
+        _filling = true;
         BeginUpdate();
-        Items.Clear();
-        _images.Images.Clear();
-        _images.Images.Add(Placeholder ?? new Bitmap(64, 64));
-        foreach (var (number, caption, cover) in items)
+        try
         {
-            int index = 0;
-            if (TryDecode(cover) is { } img)
+            Items.Clear();
+            _images.Images.Clear();
+            if (Placeholder is not null) _images.Images.Add(Placeholder);
+            else
             {
-                _images.Images.Add(img);
-                index = _images.Images.Count - 1;
+                using var blank = new Bitmap(64, 64);
+                _images.Images.Add(blank);   // ImageList copies the image
             }
-            Items.Add(new ListViewItem(caption, index) { Tag = number });
+            foreach (var (number, caption, cover) in items)
+            {
+                int index = 0;
+                if (TryDecode(cover) is { } img)
+                {
+                    using (img) _images.Images.Add(img);   // ImageList copies the image
+                    index = _images.Images.Count - 1;
+                }
+                Items.Add(new ListViewItem(caption, index) { Tag = number });
+            }
+            if (before is int n) SelectNumber(n);
         }
-        EndUpdate();
-        if (selected is int n) SelectNumber(n);
+        finally
+        {
+            EndUpdate();
+            _filling = false;
+        }
+        if (SelectedNumber != before) SelectedGameChanged?.Invoke(this, EventArgs.Empty);
     }
 
     public bool SelectNumber(int number)
@@ -72,7 +87,7 @@ public sealed class ThumbnailView : ListView
     protected override void OnSelectedIndexChanged(EventArgs e)
     {
         base.OnSelectedIndexChanged(e);
-        SelectedGameChanged?.Invoke(this, EventArgs.Empty);
+        if (!_filling) SelectedGameChanged?.Invoke(this, EventArgs.Empty);
     }
 
     protected override void Dispose(bool disposing)

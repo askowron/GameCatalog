@@ -6,6 +6,7 @@ namespace GameCatalog.UI.Controls;
 public partial class FindBar : UserControl
 {
     private List<string> _tags = new();
+    private bool _filling;
 
     public FindBar()
     {
@@ -43,16 +44,26 @@ public partial class FindBar : UserControl
     [Browsable(false), DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
     public bool Reverse { get => chkReverse.Checked; set => chkReverse.Checked = value; }
 
-    /// <summary>Fills the field list (captions in the current language) and keeps/sets the selection.</summary>
+    /// <summary>
+    /// Fills the field list (captions in the current language) and keeps/sets the selection.
+    /// CriteriaChanged is raised at most once, and only when the selected field tag changed.
+    /// </summary>
     public void SetFields(IEnumerable<(string Tag, string Caption)> fields, string selectedTag)
     {
         var list = fields.ToList();
-        _tags = list.Select(f => f.Tag).ToList();
-        cbxField.BeginUpdate();
-        cbxField.Items.Clear();
-        foreach (var f in list) cbxField.Items.Add(f.Caption);
-        cbxField.EndUpdate();
-        cbxField.SelectedIndex = Math.Max(0, _tags.IndexOf(selectedTag));
+        string before = FieldTag;
+        _filling = true;
+        try
+        {
+            _tags = list.Select(f => f.Tag).ToList();
+            cbxField.BeginUpdate();
+            cbxField.Items.Clear();
+            foreach (var f in list) cbxField.Items.Add(f.Caption);
+            cbxField.EndUpdate();
+            cbxField.SelectedIndex = list.Count == 0 ? -1 : Math.Max(0, _tags.IndexOf(selectedTag));
+        }
+        finally { _filling = false; }
+        if (FieldTag != before) OnCriteriaChanged();
     }
 
     public void FocusText()
@@ -61,5 +72,8 @@ public partial class FindBar : UserControl
         txtValue.SelectAll();
     }
 
-    private void OnCriteriaChanged() => CriteriaChanged?.Invoke(this, EventArgs.Empty);
+    private void OnCriteriaChanged()
+    {
+        if (!_filling) CriteriaChanged?.Invoke(this, EventArgs.Empty);
+    }
 }

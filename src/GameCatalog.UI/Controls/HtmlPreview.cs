@@ -1,6 +1,5 @@
 using System.ComponentModel;
 using System.Diagnostics;
-using System.Runtime.InteropServices;
 using Microsoft.Web.WebView2.Core;
 
 namespace GameCatalog.UI.Controls;
@@ -32,7 +31,7 @@ public partial class HtmlPreview : UserControl
     {
         if (DesignMode) return;   // never start WebView2 inside the Visual Studio designer
         await (_initialization ??= InitializeAsync());
-        if (!IsAvailable || webView.CoreWebView2 is null) return;
+        if (IsDisposed || !IsAvailable || webView.CoreWebView2 is null) return;
         if (html.Length < NavigateToStringLimit)
         {
             webView.NavigateToString(html);
@@ -41,6 +40,7 @@ public partial class HtmlPreview : UserControl
         {
             var file = Path.Combine(Path.GetTempPath(), "gamecatalog_preview.html");
             await File.WriteAllTextAsync(file, html);
+            if (IsDisposed) return;
             webView.CoreWebView2.Navigate(new Uri(file).AbsoluteUri);
         }
     }
@@ -72,11 +72,19 @@ public partial class HtmlPreview : UserControl
                 }
             };
         }
-        catch (Exception ex) when (ex is WebView2RuntimeNotFoundException or COMException or InvalidOperationException)
+        catch (Exception ex)
         {
+            // Any failure of the WebView2 runtime or profile (missing runtime, locked or read-only profile
+            // folder, COM errors) must not break the host window: fall back to the message panel. The
+            // exception is swallowed here, so the cached initialization task never stays faulted.
             IsAvailable = false;
-            webView.Visible = false;
-            pnlMissing.Visible = true;
+            if (!IsDisposed)
+            {
+                webView.Visible = false;
+                pnlMissing.Visible = true;
+                if (ex is not WebView2RuntimeNotFoundException)
+                    lblMissing.Text += Environment.NewLine + ex.Message;
+            }
         }
     }
 

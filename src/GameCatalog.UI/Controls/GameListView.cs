@@ -49,14 +49,17 @@ public sealed class GameListView : ListView
     public IReadOnlyList<(string Tag, int Width)> ColumnWidths() =>
         Columns.Cast<ColumnHeader>().Select(c => ((string)c.Tag!, c.Width)).ToList();
 
-    /// <summary>Replaces all rows; keeps the selected game when it is still present.</summary>
+    /// <summary>
+    /// Replaces all rows and keeps the selected game when it is still present. SelectedGameChanged is
+    /// raised once, and only when the selected game after the call differs from the one before.
+    /// </summary>
     public void Display(IReadOnlyList<GameListItem> items, IReadOnlyList<GameListGroup> groups)
     {
-        int? selected = SelectedNumber;
+        int? before = SelectedNumber;
         _filling = true;
+        BeginUpdate();
         try
         {
-            BeginUpdate();
             Groups.Clear();
             Items.Clear();
             var byKey = new Dictionary<string, ListViewGroup>();
@@ -72,10 +75,14 @@ public sealed class GameListView : ListView
                 if (byKey.TryGetValue(item.GroupKey, out var lg)) lvi.Group = lg;
                 Items.Add(lvi);
             }
-            EndUpdate();
+            if (before is int n) SelectNumber(n);
         }
-        finally { _filling = false; }
-        if (selected is int n && !SelectNumber(n)) SelectedGameChanged?.Invoke(this, EventArgs.Empty);
+        finally
+        {
+            EndUpdate();
+            _filling = false;
+        }
+        if (SelectedNumber != before) SelectedGameChanged?.Invoke(this, EventArgs.Empty);
     }
 
     public void UpdateItem(GameListItem item)
