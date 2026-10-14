@@ -27,6 +27,9 @@ public sealed class ThumbnailView : ListView
 
     public void Display(IReadOnlyList<(int Number, string Caption, byte[]? Cover)> items)
     {
+        // Creating the ImageList handle first makes Images.Add copy the bitmap right away (before that it
+        // keeps a reference), so the decoded covers and the blank image can be disposed below.
+        _ = _images.Handle;
         int? before = SelectedNumber;
         _filling = true;
         BeginUpdate();
@@ -38,14 +41,14 @@ public sealed class ThumbnailView : ListView
             else
             {
                 using var blank = new Bitmap(64, 64);
-                _images.Images.Add(blank);   // ImageList copies the image
+                _images.Images.Add(blank);   // copied by the ImageList (its handle exists)
             }
             foreach (var (number, caption, cover) in items)
             {
                 int index = 0;
                 if (TryDecode(cover) is { } img)
                 {
-                    using (img) _images.Images.Add(img);   // ImageList copies the image
+                    using (img) _images.Images.Add(img);   // copied by the ImageList (its handle exists)
                     index = _images.Images.Count - 1;
                 }
                 Items.Add(new ListViewItem(caption, index) { Tag = number });
