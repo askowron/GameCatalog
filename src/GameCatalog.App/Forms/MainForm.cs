@@ -1,6 +1,7 @@
 using System.ComponentModel;
 using System.Text;
 using System.Text.Json;
+using GameCatalog.App.Services;
 using GameCatalog.Core.Catalog;
 using GameCatalog.Core.Fields;
 using GameCatalog.Core.Models;
@@ -114,7 +115,7 @@ public sealed class MainForm : Form
         Width = 1180; Height = 740;
         StartPosition = FormStartPosition.CenterScreen;
 
-        _prefs = PrefsStore.Load();
+        _prefs = AppServices.Prefs;
         _icons = AmcIcons.LoadStrip(_prefs.Theme);
         try
         {

@@ -1,3 +1,5 @@
+using GameCatalog.App.Services;
+
 namespace GameCatalog.App;
 
 /// <summary>Preferencje w stylu AMC options.pas — drzewo kategorii + panele.

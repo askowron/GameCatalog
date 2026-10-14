@@ -1,20 +1,22 @@
 using System.Text.Json;
 
-namespace GameCatalog.App;
+namespace GameCatalog.App.Services;
 
-/// <summary>Własna wyszukiwarka internetowa — szablon URL z miejscem na zapytanie {q}.</summary>
+/// <summary>Custom web search site: a URL template with a {q} placeholder for the query.</summary>
 public sealed record SearchSite(string Name, string Url);
 
-/// <summary>Preferencje programu — odpowiednik opcji AMC (options.pas).</summary>
+/// <summary>Application preferences (equivalent of the AMC options).</summary>
 public sealed class PrefsStore
 {
+    /// <summary>Language code chosen by the user; empty until the first-run language selection.</summary>
+    public string Language { get; set; } = "";
     public string Theme { get; set; } = AmcIcons.DefaultTheme;
     public List<string> RecentFiles { get; set; } = new();
     public string HtmlTemplate { get; set; } = "Szczegółowy";
     public bool ShowGroupCount { get; set; } = true;
-    /// <summary>Automatyczne numerowanie (jak opcja AMC). Gdy false — przy dodawaniu pokazuj „Wybór numeru gry”.</summary>
+    /// <summary>Automatic numbering (like the AMC option). When false, adding a game shows the "Choose game number" prompt.</summary>
     public bool AutoNumbering { get; set; } = false;
-    /// <summary>Format tytułu na liście: Both (Oryginalny / Polski), Original, Localized.</summary>
+    /// <summary>Title format in the list: Both (original / localized), Original, Localized.</summary>
     public string TitleFormat { get; set; } = "Both";
     public bool NaturalSort { get; set; } = true;
     public bool ForceFullRefresh { get; set; } = false;
@@ -24,18 +26,18 @@ public sealed class PrefsStore
     public bool ShowMenuIcons { get; set; } = true;
     public bool CoverVisible { get; set; } = true;
     public bool ShowExtraCategory { get; set; } = true;
-    /// <summary>Separator CSV: ";" "," lub "TAB".</summary>
+    /// <summary>CSV separator: ";", "," or "TAB".</summary>
     public string CsvDelimiter { get; set; } = ";";
     public bool BackupOnSave { get; set; } = false;
-    /// <summary>Wzorce plików EXE przy imporcie z folderu, rozdzielone średnikiem.</summary>
+    /// <summary>EXE file patterns used when importing from a folder, separated by semicolons.</summary>
     public string MediaPatterns { get; set; } = "*.exe";
-    /// <summary>Maks. szerokość wczytywanej okładki w px (0 = bez zmian).</summary>
+    /// <summary>Maximum width of a loaded cover in px (0 = unchanged).</summary>
     public int MaxCoverWidth { get; set; } = 0;
-    /// <summary>Limit czasu skryptu w sekundach.</summary>
+    /// <summary>Script time limit in seconds.</summary>
     public int ScriptTimeoutSec { get; set; } = 60;
-    /// <summary>Własne wartości list rozwijanych (tag pola → wartości).</summary>
+    /// <summary>Custom drop-down list values (field tag to values).</summary>
     public Dictionary<string, List<string>> CustomLists { get; set; } = new();
-    /// <summary>Własne wyszukiwarki (puste = domyślne).</summary>
+    /// <summary>Custom search sites (empty = defaults).</summary>
     public List<SearchSite> CustomSearchSites { get; set; } = new();
 
     public static List<SearchSite> DefaultSearchSites() => new()
@@ -48,12 +50,7 @@ public sealed class PrefsStore
 
     public char CsvSeparator() => CsvDelimiter == "TAB" ? '\t' : string.IsNullOrEmpty(CsvDelimiter) ? ';' : CsvDelimiter[0];
 
-    public static string PrefsPath()
-    {
-        var dir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "GameCatalog");
-        Directory.CreateDirectory(dir);
-        return Path.Combine(dir, "prefs.json");
-    }
+    public static string PrefsPath() => Path.Combine(AppPaths.DataDirectory, "prefs.json");
 
     public static PrefsStore Load()
     {
