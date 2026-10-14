@@ -1,0 +1,10 @@
+<Project>
+  <!-- Microsoft.Web.WebView2 adds its WPF assembly to every consumer (it flows transitively through
+       project references). This solution is WinForms only, and that assembly drags in a second
+       WindowsBase version (MSB3277), so drop it before references are resolved. Core and WinForms stay. -->
+  <Target Name="RemoveWebView2WpfReference" BeforeTargets="ResolveAssemblyReferences;FindReferenceAssembliesForReferences">
+    <ItemGroup>
+      <Reference Remove="@(Reference)" Condition="'%(Filename)' == 'Microsoft.Web.WebView2.Wpf'" />
+    </ItemGroup>
+  </Target>
+</Project>
