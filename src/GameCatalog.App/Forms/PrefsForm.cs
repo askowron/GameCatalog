@@ -1,3 +1,4 @@
+using GameCatalog.App.Forms;
 using GameCatalog.UI.Components;
 using GameCatalog.UI.Icons;
 using GameCatalog.App.Services;

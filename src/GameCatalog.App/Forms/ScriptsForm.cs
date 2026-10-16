@@ -3,31 +3,6 @@ using GameCatalog.Scripting;
 
 namespace GameCatalog.App;
 
-/// <summary>Dialog wyboru z listy dla skryptów (jak PickList w AMC).</summary>
-public sealed class PickForm : Form
-{
-    public int SelectedIndex { get; private set; } = -1;
-    private readonly ListBox _list = new() { Dock = DockStyle.Fill };
-
-    public PickForm(string title, IList<string> options)
-    {
-        Text = title;
-        Width = 420; Height = 340;
-        StartPosition = FormStartPosition.CenterParent;
-        foreach (var o in options) _list.Items.Add(o);
-        if (_list.Items.Count > 0) _list.SelectedIndex = 0;
-        _list.DoubleClick += (_, _) => { SelectedIndex = _list.SelectedIndex; DialogResult = DialogResult.OK; Close(); };
-        var bar = new FlowLayoutPanel { Dock = DockStyle.Bottom, Height = 44, FlowDirection = FlowDirection.RightToLeft, Padding = new Padding(8) };
-        var ok = new Button { Text = "OK", DialogResult = DialogResult.OK, Width = 80 };
-        var cancel = new Button { Text = "Anuluj", DialogResult = DialogResult.Cancel, Width = 80 };
-        ok.Click += (_, _) => SelectedIndex = _list.SelectedIndex;
-        bar.Controls.Add(ok); bar.Controls.Add(cancel);
-        Controls.Add(_list);
-        Controls.Add(bar);
-        AcceptButton = ok; CancelButton = cancel;
-    }
-}
-
 /// <summary>
 /// Skrypty — menedżer + edytor + uruchamianie (odpowiednik AMC getscript.pas).
 /// Skrypty C# (.gcsx) pobierają dane o grach z internetu przez obiekt Api.

@@ -113,6 +113,74 @@
     "ChoiceDialog": {
       "btnOk.Text": "OK",
       "btnCancel.Text": "Anuluj"
+    },
+    "NumberDialog": {
+      "lblNumber.Text": "Idź do numeru:",
+      "btnOk.Text": "OK",
+      "btnCancel.Text": "Anuluj"
+    },
+    "NumberConflictDialog": {
+      "$this.Text": "Wybór numeru gry",
+      "lblNumber.Text": "Wprowadź numer dla gry:",
+      "btnFind.ToolTip": "Znajdź pierwszy wolny numer",
+      "rbAcceptDuplicate.Text": "Akceptuj duplikat",
+      "rbRenumberExisting.Text": "Nadaj inny numer istniejącej grze",
+      "rbShiftNew.Text": "Przesuwaj numer gry do czasu, aż nie będzie zduplikowany",
+      "chkDontAskAgain.Text": "Nie pytaj ponownie; użyj automatycznego numerowania",
+      "btnOk.Text": "OK",
+      "btnCancel.Text": "Anuluj"
+    },
+    "CatalogPropertiesDialog": {
+      "$this.Text": "Właściwości katalogu",
+      "btnOk.Text": "OK"
+    },
+    "PickForm": {
+      "btnOk.Text": "OK",
+      "btnCancel.Text": "Anuluj"
+    },
+    "AboutForm": {
+      "$this.Text": "O programie",
+      "btnOk.Text": "OK"
+    },
+    "HelpForm": {
+      "$this.Text": "Indeks pomocy",
+      "btnClose.Text": "Zamknij"
+    },
+    "VersionsForm": {
+      "$this.Text": "Wersje",
+      "btnClose.Text": "Zamknij"
+    },
+    "HtmlEditorForm": {
+      "lblTags.Text": "Znaczniki (2×klik wstawia):",
+      "btnSave.Text": "Zapisz",
+      "btnReset.Text": "Przywróć domyślny",
+      "btnCancel.Text": "Anuluj"
+    },
+    "ExtraEditForm": {
+      "$this.Text": "Dodatek / DLC",
+      "btnOk.Text": "OK",
+      "btnCancel.Text": "Anuluj"
+    },
+    "CustomFieldsForm": {
+      "$this.Text": "Zarządzanie polami",
+      "btnAdd.Text": "Dodaj…",
+      "btnEdit.Text": "Edytuj…",
+      "btnDelete.Text": "Usuń",
+      "btnClose.Text": "Zamknij"
+    },
+    "CustomFieldEditForm": {
+      "$this.Text": "Pole własne",
+      "lblTag.Text": "Tag:",
+      "lblName.Text": "Nazwa:",
+      "lblType.Text": "Typ:",
+      "lblListValues.Text": "Wartości listy (;):",
+      "btnOk.Text": "OK",
+      "btnCancel.Text": "Anuluj"
+    },
+    "ScriptResultForm": {
+      "$this.Text": "Wyniki skryptu",
+      "btnApply.Text": "Zastosuj",
+      "btnCancel.Text": "Anuluj"
     }
   },
   "strings": {
@@ -367,6 +435,45 @@
     "Filter.ImageSave": "PNG (*.png)|*.png|JPEG (*.jpg)|*.jpg",
     "Filter.Csv": "CSV (*.csv)|*.csv",
     "Filter.Html": "HTML (*.html)|*.html",
-    "Filter.AmcXml": "Ant Movie Catalog XML (*.xml)|*.xml"
+    "Filter.AmcXml": "Ant Movie Catalog XML (*.xml)|*.xml",
+
+    "Common.Confirm": "Potwierdź",
+    "Common.SaveError": "Błąd zapisu: {0}",
+    "Number.GoToTitle": "Numer gry",
+    "Number.TakenBy": "Numer {0} ma już: {1}",
+    "Properties.Summary": "Plik bazy:\n{0}\n\nRozmiar: {1}\nGier: {2}\nDodatki/DLC: {3}\nCzas gry łącznie: {4:0.#} h\nAktywne wypożyczenia: {5}",
+    "About.Description": "Port Ant Movie Catalog (Delphi, Antoine Potten)\nna C# .NET + WinForms + SQLite.\n\nPola filmowe przeportowano na growe:\nDirector→Developer, Producer→Wydawca,\nActors→Aktorzy głosowi, Length→Czas gry,\nExtras→DLC/dodatki, nowe: Platforma, Status.",
+    "Help.Start.Title": "Pierwsze kroki",
+    "Help.Start.Body": "GameCatalog przechowuje gry w pliku .gc (SQLite, domyślnie Dokumenty\\GameCatalog\\catalog.gc).\n\n• Gra > Dodaj (Alt+Insert) — nowa gra, edycja pól bezpośrednio w zakładce „Pola gry”.\n• Zmiany zapisuj Plik > Zapisz (Ctrl+S).\n• Okładkę dodasz w panelu pod listą (Obrazki > Wczytaj).",
+    "Help.Fields.Title": "Pola gry",
+    "Help.Fields.Body": "Pola przeportowano z Ant Movie Catalog:\nDirector→Developer, Producer→Wydawca, Writer→Projektant, Actors→Aktorzy głosowi, Category→Gatunek, Certification→PEGI, Length→Czas gry, Extras→Dodatki/DLC.\nNowe pola: Platforma, Status (Do zagrania/Ogrywana/Ukończona…), Ostatnio grano.\nPola własne zdefiniujesz w Narzędzia > Zarządzanie polami.",
+    "Help.List.Title": "Lista i grupy",
+    "Help.List.Body": "• Kliknij nagłówek kolumny, aby sortować; Wyświetlaj > Sortuj wg zmienia pole.\n• Wyświetlaj > Grupuj wg grupuje gry jak drzewo w AMC.\n• Checkbox = zaznaczenie gry; menu kontekstowe = etykieta koloru (jak w AMC).\n• Gra > Losowy (F8) losuje grę, Gra > Zmień numer (F2) zmienia numer.",
+    "Help.Find.Title": "Szukanie",
+    "Help.Find.Body": "Gra > Znajdź (Ctrl+F) pokazuje pasek szukania jak w AMC:\n• wybierz pole i wpisz wartość (szukanie wyrażeń nie jest wspierane),\n• „Całe pole” = dokładne dopasowanie, „Pokaż wyniki” = filtr listy,\n• „Odwróć wyniki” = negacja, „Znajdź następny” = kolejna pozycja.",
+    "Help.ImportExport.Title": "Import i eksport",
+    "Help.ImportExport.Body": "• Plik > Import: z folderu (podfolder = gra), z CSV, z AMC XML (mapowanie pól filmowych na growe).\n• Gra > Pobierz informacje > Z plików — uzupełnia dane z folderu.\n• Gra > Szukaj w Internecie — wyszukiwanie tytułu w Google/Steam/MobyGames/HLTB.\n• Plik > Eksport: CSV, HTML. Szablon karty: Wyświetlaj > Wybierz HTML, edycja: Narzędzia > Edytor HTML.",
+    "Help.Stats.Title": "Statystyki",
+    "Help.Stats.Body": "Narzędzia > Statystyki: Informacje ogólne albo wykres dla każdego pola (słupkowy dla liczb i dat, kołowy dla tekstów).\nZakres: Wszystkie/Wybrane/Zaznaczone/Widoczne. Opcje: legenda, etykiety, puste miesiące, grupowanie wartości. Wykres zapiszesz (PNG/BMP/JPEG/WMF) lub skopiujesz.",
+    "Help.Loans.Title": "Wypożyczenia",
+    "Help.Loans.Body": "Narzędzia > Pożyczone (F9): pożyczanie gier ze zwrotem i historią — jak loan.pas w AMC.",
+    "Help.Scripts.Title": "Skrypty",
+    "Help.Scripts.Body": "Skrypty C# (.gcsx w Dokumenty\\GameCatalog\\Scripts) pobierają dane z internetu — jak skrypty .ifs w AMC.\n\n• Gra > Pobierz informacje > Ze skryptu (F6) — uruchom dla bieżącej gry, potem zaznacz zmiany do zastosowania.\n• Narzędzia > Skrypty (Shift+F6) — menedżer: nowy/edycja/usuwanie + uruchomienie testowe z dziennikiem.\n• W skrypcie dostępny jest obiekt Api: GetPage/PostPage/GetPicture, SetField/GetField, AddExtra, PickList, RegexAll/Between, Log, SearchLinks (DuckDuckGo + Bing).\n• JSON: var root = Api.JsonRoot(json, out var doc); ...; doc.Dispose(); (using var nie działa w skryptach).\n• Dołączone skrypty: Steam, Wikipedia PL i GRY-Online.pl (działają od razu), IGDB (oficjalne API — wymaga darmowych kluczy Twitch wpisanych w skrypcie).",
+    "Help.Shortcuts.Title": "Skróty",
+    "Help.Shortcuts.Body": "Ctrl+N/O/S, Ctrl+Shift+S, Ctrl+P, Ctrl+I, Ctrl+E, Alt+Enter, Alt+F4, Alt+Ins, Alt+Del, Ctrl+F, F8, F2, Ctrl+Shift+C/V/Z, F11, Shift+F4, F4, F12, Ctrl+F12, F10, F9, Shift+Ctrl+F12, F1.",
+    "Versions.Text": "GameCatalog 1.x — port Ant Movie Catalog na C# (.NET + WinForms + SQLite).\n\n1.5 — Mechanizm skryptów jak w AMC (getscript.pas): skrypty C# (.gcsx)\n      z obiektem Api (GetPage/SetField/AddExtra/PickList/SearchLinks),\n      menedżer + edytor + podgląd zmian, skrypty Steam, Wikipedia PL,\n      GRY-Online.pl oraz IGDB (oficjalne API, klucze Twitch).\n1.4 — Menu jak w AMC: ostatnie pliki, Pobierz informacje, Szukaj w Internecie,\n      Formatowanie grup, Pola tabeli, Wybierz HTML, Zmień numer (zamiana).\n      Nowe okna: pola własne, obrazki, edytor HTML, preferencje (motywy ikon),\n      pomoc, wersje. Rozszerzenie katalogu .gc.\n1.3 — Statystyki jak w AMC (kategorie, zakres, wykresy słupkowe/kołowe).\n1.2 — Układ AMC: lista z grupami, okładka, pola inline, dodatki,\n      pasek szukania, oryginalne ikony (6 motywów).\n1.1 — WinForms + SQLite: gry, DLC, wypożyczenia, CSV/HTML, import AMC XML.\n1.0 — Pierwsza wersja: model danych growych (mapowanie pól filmowych).",
+    "HtmlEditor.Caption": "Edytor HTML — {0}",
+    "ExtraEdit.TitleRequired": "Tytuł jest wymagany.",
+    "ExtraEdit.ValidationTitle": "Walidacja",
+    "CustomFields.NewTag": "Pole{0}",
+    "CustomFields.NewName": "Nowe pole",
+    "CustomFields.ConfirmDelete": "Usunąć pole „{0}”?",
+    "CustomFieldEdit.TagInvalid": "Tag musi być niepusty i unikalny.",
+    "CustomFieldEdit.NameRequired": "Nazwa jest wymagana.",
+    "ScriptResult.Change": "{0}: „{1}” → „{2}”",
+    "ScriptResult.Cover": "Okładka ({0} KB)",
+    "ScriptResult.NoCover": "Okładka",
+    "ScriptResult.FieldsCount": "Pola do zastosowania ({0}):",
+    "ScriptResult.ExtrasCount": "Dodatki/DLC ({0}):"
   }
 }

@@ -113,6 +113,74 @@
     "ChoiceDialog": {
       "btnOk.Text": "OK",
       "btnCancel.Text": "Cancel"
+    },
+    "NumberDialog": {
+      "lblNumber.Text": "Go to number:",
+      "btnOk.Text": "OK",
+      "btnCancel.Text": "Cancel"
+    },
+    "NumberConflictDialog": {
+      "$this.Text": "Game number",
+      "lblNumber.Text": "Enter the game number:",
+      "btnFind.ToolTip": "Find the first free number",
+      "rbAcceptDuplicate.Text": "Accept the duplicate",
+      "rbRenumberExisting.Text": "Give the existing game another number",
+      "rbShiftNew.Text": "Shift the number until it is no longer a duplicate",
+      "chkDontAskAgain.Text": "Do not ask again; use automatic numbering",
+      "btnOk.Text": "OK",
+      "btnCancel.Text": "Cancel"
+    },
+    "CatalogPropertiesDialog": {
+      "$this.Text": "Catalog properties",
+      "btnOk.Text": "OK"
+    },
+    "PickForm": {
+      "btnOk.Text": "OK",
+      "btnCancel.Text": "Cancel"
+    },
+    "AboutForm": {
+      "$this.Text": "About",
+      "btnOk.Text": "OK"
+    },
+    "HelpForm": {
+      "$this.Text": "Help index",
+      "btnClose.Text": "Close"
+    },
+    "VersionsForm": {
+      "$this.Text": "Versions",
+      "btnClose.Text": "Close"
+    },
+    "HtmlEditorForm": {
+      "lblTags.Text": "Tags (double-click inserts):",
+      "btnSave.Text": "Save",
+      "btnReset.Text": "Restore default",
+      "btnCancel.Text": "Cancel"
+    },
+    "ExtraEditForm": {
+      "$this.Text": "Extra / DLC",
+      "btnOk.Text": "OK",
+      "btnCancel.Text": "Cancel"
+    },
+    "CustomFieldsForm": {
+      "$this.Text": "Manage fields",
+      "btnAdd.Text": "Add…",
+      "btnEdit.Text": "Edit…",
+      "btnDelete.Text": "Delete",
+      "btnClose.Text": "Close"
+    },
+    "CustomFieldEditForm": {
+      "$this.Text": "Custom field",
+      "lblTag.Text": "Tag:",
+      "lblName.Text": "Name:",
+      "lblType.Text": "Type:",
+      "lblListValues.Text": "List values (;):",
+      "btnOk.Text": "OK",
+      "btnCancel.Text": "Cancel"
+    },
+    "ScriptResultForm": {
+      "$this.Text": "Script results",
+      "btnApply.Text": "Apply",
+      "btnCancel.Text": "Cancel"
     }
   },
   "strings": {
@@ -367,6 +435,45 @@
     "Filter.ImageSave": "PNG (*.png)|*.png|JPEG (*.jpg)|*.jpg",
     "Filter.Csv": "CSV (*.csv)|*.csv",
     "Filter.Html": "HTML (*.html)|*.html",
-    "Filter.AmcXml": "Ant Movie Catalog XML (*.xml)|*.xml"
+    "Filter.AmcXml": "Ant Movie Catalog XML (*.xml)|*.xml",
+
+    "Common.Confirm": "Confirm",
+    "Common.SaveError": "Save failed: {0}",
+    "Number.GoToTitle": "Game number",
+    "Number.TakenBy": "Number {0} is already used by: {1}",
+    "Properties.Summary": "Database file:\n{0}\n\nSize: {1}\nGames: {2}\nExtras/DLC: {3}\nTotal playtime: {4:0.#} h\nActive loans: {5}",
+    "About.Description": "A port of Ant Movie Catalog (Delphi, Antoine Potten)\nto C# .NET + WinForms + SQLite.\n\nMovie fields were ported to game fields:\nDirector→Developer, Producer→Publisher,\nActors→Voice actors, Length→Playtime,\nExtras→DLC/extras, new: Platform, Status.",
+    "Help.Start.Title": "Getting started",
+    "Help.Start.Body": "GameCatalog keeps games in a .gc file (SQLite, by default Documents\\GameCatalog\\catalog.gc).\n\n• Game > Add (Alt+Insert) — a new game; edit its fields directly on the \"Game fields\" tab.\n• Save changes with File > Save (Ctrl+S).\n• Add a cover in the panel below the list (Pictures > Load).",
+    "Help.Fields.Title": "Game fields",
+    "Help.Fields.Body": "The fields were ported from Ant Movie Catalog:\nDirector→Developer, Producer→Publisher, Writer→Designer, Actors→Voice actors, Category→Genre, Certification→PEGI, Length→Playtime, Extras→Extras/DLC.\nNew fields: Platform, Status (Backlog/Playing/Completed…), Last played.\nDefine custom fields in Tools > Manage fields.",
+    "Help.List.Title": "List and groups",
+    "Help.List.Body": "• Click a column header to sort; View > Sort by changes the field.\n• View > Group by groups games into a tree as in AMC.\n• Checkbox = game checked; context menu = color tag (as in AMC).\n• Game > Random (F8) picks a random game, Game > Change number (F2) changes its number.",
+    "Help.Find.Title": "Searching",
+    "Help.Find.Body": "Game > Find (Ctrl+F) shows the search bar as in AMC:\n• pick a field and type a value (expression search is not supported),\n• \"Whole field\" = exact match, \"Show results\" = filter the list,\n• \"Reverse results\" = negation, \"Find next\" = the next match.",
+    "Help.ImportExport.Title": "Import and export",
+    "Help.ImportExport.Body": "• File > Import: from a folder (subfolder = game), from CSV, from AMC XML (movie fields mapped to game fields).\n• Game > Get information > From files — fills in data from the folder.\n• Game > Search the Internet — looks the title up on Google/Steam/MobyGames/HLTB.\n• File > Export: CSV, HTML. Card template: View > Select HTML, editing: Tools > HTML editor.",
+    "Help.Stats.Title": "Statistics",
+    "Help.Stats.Body": "Tools > Statistics: general information or a chart for each field (bars for numbers and dates, pie for text).\nScope: All/Selected/Checked/Visible. Options: legend, labels, empty months, value grouping. Save the chart (PNG/BMP/JPEG/WMF) or copy it.",
+    "Help.Loans.Title": "Loans",
+    "Help.Loans.Body": "Tools > Loans (F9): lend games, record returns and keep the history — like loan.pas in AMC.",
+    "Help.Scripts.Title": "Scripts",
+    "Help.Scripts.Body": "C# scripts (.gcsx in Documents\\GameCatalog\\Scripts) fetch data from the Internet — like .ifs scripts in AMC.\n\n• Game > Get information > From script (F6) — run for the current game, then tick the changes to apply.\n• Tools > Scripts (Shift+F6) — manager: new/edit/delete + a test run with a log.\n• Scripts get an Api object: GetPage/PostPage/GetPicture, SetField/GetField, AddExtra, PickList, RegexAll/Between, Log, SearchLinks (DuckDuckGo + Bing).\n• JSON: var root = Api.JsonRoot(json, out var doc); ...; doc.Dispose(); (using var does not work in scripts).\n• Bundled scripts: Steam, Wikipedia PL and GRY-Online.pl (work out of the box), IGDB (official API — needs free Twitch keys entered in the script).",
+    "Help.Shortcuts.Title": "Shortcuts",
+    "Help.Shortcuts.Body": "Ctrl+N/O/S, Ctrl+Shift+S, Ctrl+P, Ctrl+I, Ctrl+E, Alt+Enter, Alt+F4, Alt+Ins, Alt+Del, Ctrl+F, F8, F2, Ctrl+Shift+C/V/Z, F11, Shift+F4, F4, F12, Ctrl+F12, F10, F9, Shift+Ctrl+F12, F1.",
+    "Versions.Text": "GameCatalog 1.x — a port of Ant Movie Catalog to C# (.NET + WinForms + SQLite).\n\n1.5 — Script engine as in AMC (getscript.pas): C# scripts (.gcsx)\n      with an Api object (GetPage/SetField/AddExtra/PickList/SearchLinks),\n      manager + editor + change preview, scripts for Steam, Wikipedia PL,\n      GRY-Online.pl and IGDB (official API, Twitch keys).\n1.4 — Menus as in AMC: recent files, Get information, Search the Internet,\n      Group formatting, Grid fields, Select HTML, Change number (swap).\n      New windows: custom fields, pictures, HTML editor, preferences (icon themes),\n      help, versions. Catalog extension .gc.\n1.3 — Statistics as in AMC (categories, scope, bar/pie charts).\n1.2 — AMC layout: grouped list, cover, inline fields, extras,\n      search bar, original icons (6 themes).\n1.1 — WinForms + SQLite: games, DLC, loans, CSV/HTML, AMC XML import.\n1.0 — First version: game data model (movie fields mapped).",
+    "HtmlEditor.Caption": "HTML editor — {0}",
+    "ExtraEdit.TitleRequired": "A title is required.",
+    "ExtraEdit.ValidationTitle": "Validation",
+    "CustomFields.NewTag": "Field{0}",
+    "CustomFields.NewName": "New field",
+    "CustomFields.ConfirmDelete": "Delete the field \"{0}\"?",
+    "CustomFieldEdit.TagInvalid": "The tag must be non-empty and unique.",
+    "CustomFieldEdit.NameRequired": "A name is required.",
+    "ScriptResult.Change": "{0}: “{1}” → “{2}”",
+    "ScriptResult.Cover": "Cover ({0} KB)",
+    "ScriptResult.NoCover": "Cover",
+    "ScriptResult.FieldsCount": "Fields to apply ({0}):",
+    "ScriptResult.ExtrasCount": "Extras/DLC ({0}):"
   }
 }
