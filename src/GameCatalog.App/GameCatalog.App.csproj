@@ -4,6 +4,7 @@
     <TargetFramework>net10.0-windows</TargetFramework>
     <UseWindowsForms>true</UseWindowsForms>
     <RootNamespace>GameCatalog.App</RootNamespace>
+    <AssemblyVersion>26.10.17.1</AssemblyVersion>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\GameCatalog.Core\GameCatalog.Core.csproj" />
