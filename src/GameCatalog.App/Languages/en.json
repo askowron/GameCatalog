@@ -212,6 +212,23 @@
       "btnBorrow.Text": "Lend",
       "btnReturn.Text": "Return selected",
       "btnClose.Text": "Close"
+    },
+    "StatsForm": {
+      "$this.Text": "Statistics",
+      "grpScope.Text": "Include games",
+      "rbAll.Text": "All",
+      "rbSelected.Text": "Selected",
+      "rbChecked.Text": "Checked",
+      "rbVisible.Text": "Visible",
+      "btnSaveChart.ToolTipText": "Save chart…",
+      "btnCopyChart.ToolTipText": "Copy chart to clipboard",
+      "btnOptions.Text": "Options",
+      "btnOptions.ToolTipText": "Chart options",
+      "mnuOptLegend.Text": "Legend",
+      "mnuOptLabels.Text": "Labels",
+      "mnuOptEmptyMonths.Text": "Empty months",
+      "mnuOptGroup.Text": "Group values",
+      "btnClose.Text": "Close"
     }
   },
   "strings": {
@@ -520,6 +537,20 @@
     "Loans.StatusLent": "lent",
     "Loans.StatusReturned": "returned",
     "Loans.BorrowerRequired": "Enter who you are lending the game to.",
-    "Loans.BorrowTitle": "Loan"
+    "Loans.BorrowTitle": "Loan",
+
+    "Stats.General": "General information",
+    "Stats.ExtraCategory": "Category (DLC)",
+    "Stats.ExtraCreatedBy": "Created by (DLC)",
+    "Stats.TotalGames": "Total number of games",
+    "Stats.AveragePlaytime": "Average playtime",
+    "Stats.TotalPlaytime": "Total playtime",
+    "Stats.PlaytimeValue": "{0} days {1} h {2} min",
+    "Stats.TotalSize": "Total size",
+    "Stats.ExtrasCount": "Number of extras (DLC)",
+    "Stats.NoValue": "< none >",
+    "Stats.Other": "< other >",
+    "Stats.ChartFilter": "PNG (*.png)|*.png|Bitmap (*.bmp)|*.bmp|JPEG (*.jpg)|*.jpg|Metafile (*.wmf)|*.wmf",
+    "Stats.ChartFileName": "chart.png"
   }
 }

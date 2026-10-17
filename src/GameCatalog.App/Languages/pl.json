@@ -212,6 +212,23 @@
       "btnBorrow.Text": "Pożycz",
       "btnReturn.Text": "Zwróć zaznaczone",
       "btnClose.Text": "Zamknij"
+    },
+    "StatsForm": {
+      "$this.Text": "Statystyki",
+      "grpScope.Text": "Uwzględnij gry",
+      "rbAll.Text": "Wszystkie",
+      "rbSelected.Text": "Wybrane",
+      "rbChecked.Text": "Zaznaczone",
+      "rbVisible.Text": "Widoczne",
+      "btnSaveChart.ToolTipText": "Zapisz wykres…",
+      "btnCopyChart.ToolTipText": "Kopiuj wykres do schowka",
+      "btnOptions.Text": "Opcje",
+      "btnOptions.ToolTipText": "Opcje wykresu",
+      "mnuOptLegend.Text": "Legenda",
+      "mnuOptLabels.Text": "Etykiety",
+      "mnuOptEmptyMonths.Text": "Puste miesiące",
+      "mnuOptGroup.Text": "Grupuj wartości",
+      "btnClose.Text": "Zamknij"
     }
   },
   "strings": {
@@ -520,6 +537,20 @@
     "Loans.StatusLent": "wypożyczona",
     "Loans.StatusReturned": "zwrócona",
     "Loans.BorrowerRequired": "Podaj komu pożyczasz.",
-    "Loans.BorrowTitle": "Wypożyczenie"
+    "Loans.BorrowTitle": "Wypożyczenie",
+
+    "Stats.General": "Informacje ogólne",
+    "Stats.ExtraCategory": "Kategoria (DLC)",
+    "Stats.ExtraCreatedBy": "Twórca (DLC)",
+    "Stats.TotalGames": "Całkowita liczba gier",
+    "Stats.AveragePlaytime": "Średni czas gry",
+    "Stats.TotalPlaytime": "Łączny czas gry",
+    "Stats.PlaytimeValue": "{0} dni {1} godz. {2} min",
+    "Stats.TotalSize": "Łączny rozmiar",
+    "Stats.ExtrasCount": "Liczba dodatków (DLC)",
+    "Stats.NoValue": "< brak >",
+    "Stats.Other": "< inne >",
+    "Stats.ChartFilter": "PNG (*.png)|*.png|Bitmap (*.bmp)|*.bmp|JPEG (*.jpg)|*.jpg|Metaplik (*.wmf)|*.wmf",
+    "Stats.ChartFileName": "wykres.png"
   }
 }

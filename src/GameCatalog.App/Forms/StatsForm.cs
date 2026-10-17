@@ -1,3 +1,5 @@
+using System.Globalization;
+using GameCatalog.App.Services;
 using GameCatalog.UI.Controls;
 using GameCatalog.UI.Components;
 using GameCatalog.UI.Icons;
@@ -5,16 +7,14 @@ using GameCatalog.Core.Catalog;
 using GameCatalog.Core.Fields;
 using GameCatalog.Core.Models;
 
-namespace GameCatalog.App;
+namespace GameCatalog.App.Forms;
 
 /// <summary>
-/// Statystyki — wierny port AMC stats.pas/stats.dfm:
-/// lista kategorii + zakres (Wszystkie/Wybrane/Zaznaczone/Widoczne),
-/// wykres słupkowy (pola liczbowe/daty) lub kołowy (pola tekstowe),
-/// pasek narzędzi (Zapisz jako, Kopiuj, Opcje: Legenda/Etykiety/Puste miesiące/Grupuj),
-/// widok informacji ogólnych.
+/// Statistics — port of AMC stats.pas/stats.dfm: category list + scope (All/Selected/Checked/Visible),
+/// bar chart (numeric/date fields) or pie chart (text fields), chart toolbar
+/// (Save as, Copy, Options: Legend/Labels/Empty months/Group values) and a general information view.
 /// </summary>
-public sealed class StatsForm : Form
+public partial class StatsForm : Form
 {
     private enum Scope { All, Selected, Checked, Visible }
 
@@ -37,115 +37,52 @@ public sealed class StatsForm : Form
     private readonly string _catalogPath;
     private bool _showingGeneral = true;
 
-    private readonly ListBox _lstCategories = new() { Dock = DockStyle.Fill };
-    private readonly RadioButton _rbAll = new() { Text = "Wszystkie", AutoSize = true, Checked = true };
-    private readonly RadioButton _rbSelected = new() { Text = "Wybrane", AutoSize = true };
-    private readonly RadioButton _rbChecked = new() { Text = "Zaznaczone", AutoSize = true };
-    private readonly RadioButton _rbVisible = new() { Text = "Widoczne", AutoSize = true };
-    private readonly ToolStrip _chartTools = new();
-    private readonly StatsCanvas _canvas = new() { Dock = DockStyle.Fill };
-    private readonly VScrollBar _scroll = new() { Dock = DockStyle.Right, Visible = false };
-    private readonly ListView _lstGeneral = new() { Dock = DockStyle.Fill, View = View.Details, FullRowSelect = true };
-    private readonly ToolStripMenuItem _optLegend = new("Legenda") { CheckOnClick = true, Checked = true };
-    private readonly ToolStripMenuItem _optLabels = new("Etykiety") { CheckOnClick = true, Checked = true };
-    private readonly ToolStripMenuItem _optEmpty = new("Puste miesiące") { CheckOnClick = true, Checked = true };
-    private readonly ToolStripMenuItem _optGroup = new("Grupuj wartości") { CheckOnClick = true, Checked = true };
-    private ImageList _icons = null!;
-
     public StatsForm(GameList model, HashSet<int> visibleNumbers, int? selectedNumber, string catalogPath)
     {
+        InitializeComponent();
         _model = model;
         _visible = visibleNumbers;
         _selected = selectedNumber;
         _catalogPath = catalogPath;
+        LoadIcons();
 
-        Text = "Statystyki";
-        Width = 680; Height = 560;
-        StartPosition = FormStartPosition.CenterParent;
-        MinimizeBox = false;
-
-        _icons = IconThemeImageList.LoadStrip(IconThemeImageList.DefaultThemeId, Path.Combine(AppContext.BaseDirectory, "Resources"));
-        _chartTools.ImageList = _icons;
-
-        // --- lewy panel: kategorie + zakres (jak Panel2 + IncMovies) ---
-        var left = new Panel { Dock = DockStyle.Left, Width = 160 };
-        _lstCategories.SelectedIndexChanged += (_, _) => RefreshStats();
-        left.Controls.Add(_lstCategories);
-        var grp = new GroupBox { Text = "Uwzględnij gry", Dock = DockStyle.Bottom, Height = 120 };
-        var gp = new FlowLayoutPanel { Dock = DockStyle.Fill, FlowDirection = FlowDirection.TopDown };
-        foreach (var rb in new[] { _rbAll, _rbSelected, _rbChecked, _rbVisible })
-        {
+        lstCategories.SelectedIndexChanged += (_, _) => RefreshStats();
+        foreach (var rb in new[] { rbAll, rbSelected, rbChecked, rbVisible })
             rb.Click += (_, _) => RefreshStats();
-            gp.Controls.Add(rb);
-        }
-        grp.Controls.Add(gp);
-        left.Controls.Add(grp);
-
-        // --- prawy panel: toolbar + wykres/lista (jak Panel1) ---
-        var right = new Panel { Dock = DockStyle.Fill };
-        static ToolStripButton TBtn(AmcIcon icon, EventHandler onClick, string tip)
-        {
-            var b = new ToolStripButton
-            {
-                ImageIndex = (int)icon,
-                DisplayStyle = ToolStripItemDisplayStyle.Image,
-                ToolTipText = tip,
-            };
-            b.Click += onClick;
-            return b;
-        }
-        _chartTools.Items.Add(TBtn(AmcIcon.StatsSave, (_, _) => SaveChart(), "Zapisz wykres…"));
-        _chartTools.Items.Add(TBtn(AmcIcon.StatsCopy, (_, _) => CopyChart(), "Kopiuj wykres do schowka"));
-        _chartTools.Items.Add(new ToolStripSeparator());
-        var ddOpt = new ToolStripDropDownButton("Opcje") { ImageIndex = (int)AmcIcon.StatsOptions, DisplayStyle = ToolStripItemDisplayStyle.ImageAndText, ToolTipText = "Opcje wykresu" };
-        ddOpt.DropDown.ImageList = _icons;
-        _optLegend.ImageIndex = (int)AmcIcon.StatsOptions;
-        _optLabels.ImageIndex = (int)AmcIcon.StatsOptions;
-        _optEmpty.ImageIndex = (int)AmcIcon.StatsOptions;
-        _optGroup.ImageIndex = (int)AmcIcon.StatsOptions;
-        _optLegend.CheckedChanged += (_, _) => { _canvas.ShowLegend = _optLegend.Checked; _canvas.Invalidate(); };
-        _optLabels.CheckedChanged += (_, _) => { _canvas.ShowLabels = _optLabels.Checked; _canvas.Invalidate(); };
-        _optEmpty.CheckedChanged += (_, _) => RefreshStats();
-        _optGroup.CheckedChanged += (_, _) => RefreshStats();
-        ddOpt.DropDownItems.AddRange(new ToolStripItem[] { _optLegend, _optLabels, _optEmpty, _optGroup });
-        _chartTools.Items.Add(ddOpt);
-        _chartTools.Dock = DockStyle.Top;
-        right.Controls.Add(_chartTools);
-
-        var body = new Panel { Dock = DockStyle.Fill };
-        _scroll.Scroll += (_, _) => { _canvas.ScrollOffset = _scroll.Value; _canvas.Invalidate(); };
-        _lstGeneral.Columns.Add("", 220);
-        _lstGeneral.Columns.Add("", 200);
-        _lstGeneral.HeaderStyle = ColumnHeaderStyle.None;
-        body.Controls.Add(_canvas);
-        body.Controls.Add(_scroll);
-        body.Controls.Add(_lstGeneral);
-        right.Controls.Add(body);
-
-        var bottom = new Panel { Dock = DockStyle.Bottom, Height = 42 };
-        var btnClose = new Button { Text = "Zamknij", DialogResult = DialogResult.Cancel, Width = 90, Anchor = AnchorStyles.Right | AnchorStyles.Top, Left = 0, Top = 8 };
-        btnClose.Left = bottom.Width - 100;
-        btnClose.Anchor = AnchorStyles.Right | AnchorStyles.Top;
-        bottom.Controls.Add(btnClose);
-        bottom.Resize += (_, _) => btnClose.Left = bottom.Width - 100;
-
-        Controls.Add(right);
-        Controls.Add(left);
-        Controls.Add(bottom);
-        CancelButton = btnClose;
+        btnSaveChart.Click += (_, _) => SaveChart();
+        btnCopyChart.Click += (_, _) => CopyChart();
+        mnuOptLegend.CheckedChanged += (_, _) => { chartCanvas.ShowLegend = mnuOptLegend.Checked; chartCanvas.Invalidate(); };
+        mnuOptLabels.CheckedChanged += (_, _) => { chartCanvas.ShowLabels = mnuOptLabels.Checked; chartCanvas.Invalidate(); };
+        mnuOptEmptyMonths.CheckedChanged += (_, _) => RefreshStats();
+        mnuOptGroup.CheckedChanged += (_, _) => RefreshStats();
+        scrChart.Scroll += (_, _) => { chartCanvas.ScrollOffset = scrChart.Value; chartCanvas.Invalidate(); };
 
         FillCategories();
-        _lstCategories.SelectedIndex = 0;
+        lstCategories.SelectedIndex = 0;
+    }
+
+    /// <summary>Toolbar icons from the default AMC icon theme; the strip is disposed with the form.</summary>
+    private void LoadIcons()
+    {
+        var icons = IconThemeImageList.LoadStrip(IconThemeImageList.DefaultThemeId, Path.Combine(AppContext.BaseDirectory, "Resources"));
+        components.Add(icons);
+        tsChart.ImageList = icons;
+        btnOptions.DropDown.ImageList = icons;
+        btnSaveChart.ImageIndex = (int)AmcIcon.StatsSave;
+        btnCopyChart.ImageIndex = (int)AmcIcon.StatsCopy;
+        foreach (var item in new ToolStripItem[] { btnOptions, mnuOptLegend, mnuOptLabels, mnuOptEmptyMonths, mnuOptGroup })
+            item.ImageIndex = (int)AmcIcon.StatsOptions;
     }
 
     private void FillCategories()
     {
-        _lstCategories.Items.Add(new Category { IsGeneral = true, Name = "Informacje ogólne" });
+        var l = AppServices.Languages;
+        lstCategories.Items.Add(new Category { IsGeneral = true, Name = l.Get("Stats.General") });
         var skip = new HashSet<string> { "Number", "Comments", "Description" };
         foreach (var f in GameFields.All)
         {
             if (skip.Contains(f.Tag)) continue;
-            _lstCategories.Items.Add(new Category
+            lstCategories.Items.Add(new Category
             {
                 Tag = f.Tag,
                 Name = CatalogLabels.Current.Field(f.Tag),
@@ -160,15 +97,15 @@ public sealed class StatsForm : Form
                 },
             });
         }
-        _lstCategories.Items.Add(new Category { Tag = "E Category", Name = "Kategoria (DLC)", IsExtra = true });
-        _lstCategories.Items.Add(new Category { Tag = "E CreatedBy", Name = "Twórca (DLC)", IsExtra = true });
+        lstCategories.Items.Add(new Category { Tag = "E Category", Name = l.Get("Stats.ExtraCategory"), IsExtra = true });
+        lstCategories.Items.Add(new Category { Tag = "E CreatedBy", Name = l.Get("Stats.ExtraCreatedBy"), IsExtra = true });
     }
 
     private IEnumerable<Game> ScopeGames()
     {
-        var scope = _rbSelected.Checked ? Scope.Selected
-            : _rbChecked.Checked ? Scope.Checked
-            : _rbVisible.Checked ? Scope.Visible : Scope.All;
+        var scope = rbSelected.Checked ? Scope.Selected
+            : rbChecked.Checked ? Scope.Checked
+            : rbVisible.Checked ? Scope.Visible : Scope.All;
         return scope switch
         {
             Scope.Selected => _model.Games.Where(g => _selected.HasValue && g.Number == _selected.Value),
@@ -180,45 +117,46 @@ public sealed class StatsForm : Form
 
     private void RefreshStats()
     {
-        if (_lstCategories.SelectedItem is not Category cat) return;
+        if (lstCategories.SelectedItem is not Category cat) return;
         var games = ScopeGames().ToList();
 
-        _optEmpty.Enabled = cat.IsDate;
-        _optGroup.Enabled = !cat.IsDate && !cat.IsGeneral;
+        mnuOptEmptyMonths.Enabled = cat.IsDate;
+        mnuOptGroup.Enabled = !cat.IsDate && !cat.IsGeneral;
 
         if (cat.IsGeneral)
         {
             _showingGeneral = true;
-            _scroll.Visible = false;
-            _lstGeneral.BringToFront();
+            scrChart.Visible = false;
+            lvGeneral.BringToFront();
             FillGeneral(games);
             return;
         }
         _showingGeneral = false;
-        _canvas.BringToFront();
-        _scroll.BringToFront();
+        chartCanvas.BringToFront();
+        scrChart.BringToFront();
 
         var (labels, values) = ComputeField(games, cat);
-        _canvas.Data = new StatsCanvas.StatData(
+        chartCanvas.Data = new StatsCanvas.StatData(
             cat.IsNumeric || cat.IsDate ? StatsCanvas.ChartKind.Bar : StatsCanvas.ChartKind.Pie,
             cat.Name + "\n" + Path.GetFileName(_catalogPath),
             labels, values);
-        _canvas.ScrollOffset = 0;
-        _scroll.Value = 0;
-        if (_canvas.Data.Kind == StatsCanvas.ChartKind.Bar && labels.Count > StatsCanvas.PageBars)
+        chartCanvas.ScrollOffset = 0;
+        scrChart.Value = 0;
+        if (chartCanvas.Data.Kind == StatsCanvas.ChartKind.Bar && labels.Count > StatsCanvas.PageBars)
         {
-            _scroll.Visible = true;
-            _scroll.Minimum = 0;
-            _scroll.Maximum = labels.Count - 1;
-            _scroll.LargeChange = StatsCanvas.PageBars;
+            scrChart.Visible = true;
+            scrChart.Minimum = 0;
+            scrChart.Maximum = labels.Count - 1;
+            scrChart.LargeChange = StatsCanvas.PageBars;
         }
-        else _scroll.Visible = false;
-        _canvas.Invalidate();
+        else scrChart.Visible = false;
+        chartCanvas.Invalidate();
     }
 
     private void FillGeneral(List<Game> games)
     {
-        _lstGeneral.Items.Clear();
+        var l = AppServices.Languages;
+        lvGeneral.Items.Clear();
         int count = games.Count;
         var hours = games.Where(g => g.PlaytimeHours > 0).Select(g => g.PlaytimeHours).ToList();
         double avg = hours.Count > 0 ? hours.Average() : 0;
@@ -228,19 +166,19 @@ public sealed class StatsForm : Form
         int min = (int)(totalMin % 60);
         double totalGb = games.Sum(g => ParseSizeGb(g.SizeGb));
         int dlcs = games.Sum(g => g.Extras.Count);
-        _lstGeneral.Items.Add(new ListViewItem(new[] { "Całkowita liczba gier", count.ToString() }));
-        _lstGeneral.Items.Add(new ListViewItem(new[] { "Średni czas gry", $"{avg:0.0} h" }));
-        _lstGeneral.Items.Add(new ListViewItem(new[] { "Łączny czas gry", $"{days} dni {hrs} godz. {min} min" }));
-        _lstGeneral.Items.Add(new ListViewItem(new[] { "Łączny rozmiar", $"{totalGb:0.#} GB" }));
-        _lstGeneral.Items.Add(new ListViewItem(new[] { "Liczba dodatków (DLC)", dlcs.ToString() }));
+        void Row(string key, string value) => lvGeneral.Items.Add(new ListViewItem(new[] { l.Get(key), value }));
+        Row("Stats.TotalGames", count.ToString());
+        Row("Stats.AveragePlaytime", $"{avg:0.0} h");
+        Row("Stats.TotalPlaytime", l.Get("Stats.PlaytimeValue", days, hrs, min));
+        Row("Stats.TotalSize", $"{totalGb:0.#} GB");
+        Row("Stats.ExtrasCount", dlcs.ToString());
     }
 
     private static double ParseSizeGb(string s)
     {
         if (string.IsNullOrWhiteSpace(s)) return 0;
         var num = new string(s.Trim().TakeWhile(c => char.IsDigit(c) || c == '.' || c == ',').ToArray());
-        if (double.TryParse(num.Replace(',', '.'), System.Globalization.NumberStyles.Float,
-                System.Globalization.CultureInfo.InvariantCulture, out var v)) return v;
+        if (double.TryParse(num.Replace(',', '.'), NumberStyles.Float, CultureInfo.InvariantCulture, out var v)) return v;
         return 0;
     }
 
@@ -249,30 +187,32 @@ public sealed class StatsForm : Form
         if (cat.IsExtra) return ComputeExtras(games, cat);
         if (cat.IsDate) return ComputeDates(games, cat);
         if (cat.IsNumeric) return ComputeNumeric(games, cat);
-        // tekstowe → kołowy (jak pie series z grupowaniem)
+        // Text fields → pie chart, grouped like the AMC pie series.
+        string none = AppServices.Languages.Get("Stats.NoValue");
         var groups = games
             .Select(g => GameFieldValues.Get(g, cat.Tag))
-            .Select(v => string.IsNullOrWhiteSpace(v) ? "< brak >" : v)
+            .Select(v => string.IsNullOrWhiteSpace(v) ? none : v)
             .GroupBy(v => v)
             .Select(gr => (Label: gr.Key, Count: (double)gr.Count()))
             .OrderByDescending(x => x.Count)
             .ToList();
-        if (_optGroup.Checked)
+        if (mnuOptGroup.Checked)
         {
             double total = groups.Sum(x => x.Count);
             var big = groups.Where(x => x.Count / total >= 0.005).ToList();
             double rest = total - big.Sum(x => x.Count);
             groups = big;
-            if (rest > 0) groups.Add(("< inne >", rest));
+            if (rest > 0) groups.Add((AppServices.Languages.Get("Stats.Other"), rest));
         }
         return (groups.Select(x => x.Label).ToList(), groups.Select(x => x.Count).ToList());
     }
 
     private (List<string>, List<double>) ComputeExtras(List<Game> games, Category cat)
     {
+        string none = AppServices.Languages.Get("Stats.NoValue");
         var vals = games.SelectMany(g => g.Extras)
             .Select(e => cat.Tag == "E Category" ? e.Category : e.CreatedBy)
-            .Select(v => string.IsNullOrWhiteSpace(v) ? "< brak >" : v)
+            .Select(v => string.IsNullOrWhiteSpace(v) ? none : v)
             .GroupBy(v => v)
             .Select(gr => (gr.Key, (double)gr.Count()))
             .OrderByDescending(x => x.Item2)
@@ -293,24 +233,28 @@ public sealed class StatsForm : Form
             .Select(d => d!.Value)
             .OrderBy(d => d)
             .ToList();
-        var pl = new System.Globalization.CultureInfo("pl-PL");
-        var counts = new SortedDictionary<string, double>();
-        if (_optEmpty.Checked && dates.Count > 0)
+        // Keyed by month start so the bars stay in chronological order.
+        var counts = new SortedDictionary<DateTime, double>();
+        if (mnuOptEmptyMonths.Checked && dates.Count > 0)
         {
             var m = new DateTime(dates[0].Year, dates[0].Month, 1);
             var last = new DateTime(dates[^1].Year, dates[^1].Month, 1);
-            while (m <= last)
-            {
-                counts[m.ToString("MMM yyyy", pl)] = 0;
-                m = m.AddMonths(1);
-            }
+            for (; m <= last; m = m.AddMonths(1)) counts[m] = 0;
         }
         foreach (var d in dates)
         {
-            var k = new DateTime(d.Year, d.Month, 1).ToString("MMM yyyy", pl);
+            var k = new DateTime(d.Year, d.Month, 1);
             counts[k] = counts.TryGetValue(k, out var c) ? c + 1 : 1;
         }
-        return (counts.Keys.ToList(), counts.Values.ToList());
+        var culture = LanguageCulture();
+        return (counts.Keys.Select(k => k.ToString("MMM yyyy", culture)).ToList(), counts.Values.ToList());
+    }
+
+    /// <summary>Culture of the UI language, for month names on the date charts.</summary>
+    private static CultureInfo LanguageCulture()
+    {
+        try { return CultureInfo.GetCultureInfo(AppServices.Languages.CurrentLanguage); }
+        catch (CultureNotFoundException) { return CultureInfo.CurrentCulture; }
     }
 
     private (List<string>, List<double>) ComputeNumeric(List<Game> games, Category cat)
@@ -321,7 +265,7 @@ public sealed class StatsForm : Form
             .OrderBy(v => v)
             .ToList();
         if (vals.Count == 0) return (new List<string>(), new List<double>());
-        if (!_optGroup.Checked)
+        if (!mnuOptGroup.Checked)
         {
             var groups = vals
                 .GroupBy(v => v)
@@ -357,11 +301,12 @@ public sealed class StatsForm : Form
 
     private void SaveChart()
     {
-        if (_canvas.Data is null || _showingGeneral) return;
+        if (chartCanvas.Data is null || _showingGeneral) return;
+        var l = AppServices.Languages;
         using var s = new SaveFileDialog
         {
-            Filter = "PNG (*.png)|*.png|Bitmap (*.bmp)|*.bmp|JPEG (*.jpg)|*.jpg|Metaplik (*.wmf)|*.wmf",
-            FileName = "wykres.png",
+            Filter = l.Get("Stats.ChartFilter"),
+            FileName = l.Get("Stats.ChartFileName"),
         };
         if (s.ShowDialog(this) != DialogResult.OK) return;
         try
@@ -374,7 +319,7 @@ public sealed class StatsForm : Form
                 {
                     using var mf = new System.Drawing.Imaging.Metafile(s.FileName, hdc);
                     using var mg = Graphics.FromImage(mf);
-                    _canvas.RenderAll(mg, new Size(1024, 768));
+                    chartCanvas.RenderAll(mg, new Size(1024, 768));
                 }
                 finally { refG.ReleaseHdc(hdc); }
             }
@@ -389,23 +334,23 @@ public sealed class StatsForm : Form
                 using (var g = Graphics.FromImage(bmp))
                 {
                     g.Clear(Color.White);
-                    _canvas.RenderAll(g, new Size(1024, 768));
+                    chartCanvas.RenderAll(g, new Size(1024, 768));
                 }
                 bmp.Save(s.FileName, fmt);
             }
         }
         catch (Exception ex)
         {
-            MessageBox.Show(this, "Błąd zapisu: " + ex.Message, "Błąd", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            MessageBox.Show(this, l.Get("Common.SaveError", ex.Message), l.Get("Common.Error"), MessageBoxButtons.OK, MessageBoxIcon.Error);
         }
     }
 
     private void CopyChart()
     {
-        if (_canvas.Data is null || _showingGeneral) return;
-        using var bmp = new Bitmap(_canvas.Width, _canvas.Height);
+        if (chartCanvas.Data is null || _showingGeneral) return;
+        using var bmp = new Bitmap(chartCanvas.Width, chartCanvas.Height);
         using (var g = Graphics.FromImage(bmp))
-            _canvas.RenderAll(g, new Size(_canvas.Width, _canvas.Height));
+            chartCanvas.RenderAll(g, new Size(chartCanvas.Width, chartCanvas.Height));
         Clipboard.SetImage(bmp);
     }
 }
