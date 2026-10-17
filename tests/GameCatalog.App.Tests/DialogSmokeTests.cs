@@ -31,6 +31,12 @@ public class DialogSmokeTests
         new object[] { (Func<Form>)(() => new CatalogPropertiesDialog("c.gc", 1, 2, 3.5, 0)) },
         new object[] { (Func<Form>)(() => new PickForm("Pick", new List<string> { "a", "b" })) },
         new object[] { (Func<Form>)(() => new ScriptResultForm(new Game { Title = "A" }, new GameInfoResult { Success = true, Fields = { ["Title"] = "B" } })) },
+        new object[] { (Func<Form>)(() => new ScriptsForm(new Game { Title = "A" }, _ => Task.CompletedTask)) },
+        new object[] { (Func<Form>)(() => new PicturesForm(new GameCatalog.Core.Catalog.GameList())) },
+        new object[] { (Func<Form>)(() => new LoanForm(new GameCatalog.Core.Catalog.GameList(), new List<LoanRecord>())) },
+        new object[] { (Func<Form>)(() => new StatsForm(new GameCatalog.Core.Catalog.GameList(), new HashSet<int>(), null, "c.gc")) },
+        new object[] { (Func<Form>)(() => new PrefsForm(new PrefsStore())) },
+        new object[] { (Func<Form>)(() => new ChoiceDialog("T", "P", new[] { "a" })) },
     };
 
     [Theory]

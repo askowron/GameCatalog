@@ -181,6 +181,14 @@
       "$this.Text": "Script results",
       "btnApply.Text": "Apply",
       "btnCancel.Text": "Cancel"
+    },
+    "ScriptsForm": {
+      "btnNew.Text": "New",
+      "btnDelete.Text": "Delete",
+      "lblLog.Text": "Log:",
+      "btnRun.Text": "Test run",
+      "btnSave.Text": "Save",
+      "btnClose.Text": "Close"
     }
   },
   "strings": {
@@ -474,6 +482,14 @@
     "ScriptResult.Cover": "Cover ({0} KB)",
     "ScriptResult.NoCover": "Cover",
     "ScriptResult.FieldsCount": "Fields to apply ({0}):",
-    "ScriptResult.ExtrasCount": "Extras/DLC ({0}):"
+    "ScriptResult.ExtrasCount": "Extras/DLC ({0}):",
+
+    "Scripts.Title": "Scripts",
+    "Scripts.Caption": "Scripts — {0}",
+    "Scripts.SaveChanges": "Save changes to the script?",
+    "Scripts.ConfirmDelete": "Delete the script \"{0}\"?",
+    "Scripts.Properties": "Name: {0}\nDescription: {1}\nVersion: {2}\nAuthor: {3}\nSite: {4}",
+    "Scripts.NewName": "New script",
+    "Scripts.Running": "Running…"
   }
 }

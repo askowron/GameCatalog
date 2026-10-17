@@ -181,6 +181,14 @@
       "$this.Text": "Wyniki skryptu",
       "btnApply.Text": "Zastosuj",
       "btnCancel.Text": "Anuluj"
+    },
+    "ScriptsForm": {
+      "btnNew.Text": "Nowy",
+      "btnDelete.Text": "Usuń",
+      "lblLog.Text": "Dziennik:",
+      "btnRun.Text": "Uruchom testowo",
+      "btnSave.Text": "Zapisz",
+      "btnClose.Text": "Zamknij"
     }
   },
   "strings": {
@@ -474,6 +482,14 @@
     "ScriptResult.Cover": "Okładka ({0} KB)",
     "ScriptResult.NoCover": "Okładka",
     "ScriptResult.FieldsCount": "Pola do zastosowania ({0}):",
-    "ScriptResult.ExtrasCount": "Dodatki/DLC ({0}):"
+    "ScriptResult.ExtrasCount": "Dodatki/DLC ({0}):",
+
+    "Scripts.Title": "Skrypty",
+    "Scripts.Caption": "Skrypty — {0}",
+    "Scripts.SaveChanges": "Zapisać zmiany w skrypcie?",
+    "Scripts.ConfirmDelete": "Usunąć skrypt „{0}”?",
+    "Scripts.Properties": "Nazwa: {0}\nOpis: {1}\nWersja: {2}\nAutor: {3}\nStrona: {4}",
+    "Scripts.NewName": "Nowy skrypt",
+    "Scripts.Running": "Uruchamiam…"
   }
 }
