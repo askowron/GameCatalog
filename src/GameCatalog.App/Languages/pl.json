@@ -658,6 +658,14 @@
     "Action.Language.Hint": "Język interfejsu",
     "Action.HelpExportTranslation": "Eksportuj szablon &tłumaczenia…",
     "Action.HelpExportTranslation.Hint": "Zapisz plik językowy do przetłumaczenia",
-    "Filter.Json": "JSON (*.json)|*.json"
+    "Filter.Json": "JSON (*.json)|*.json",
+
+    "Language.System": "Język systemu",
+    "Stats.NoData": "Brak danych",
+    "Html.Playtime": "Czas gry",
+    "Html.Extras": "Dodatki / DLC",
+    "Html.Rating": "ocena",
+    "HtmlTemplate.Detailed": "Szczegółowy",
+    "HtmlTemplate.Compact": "Kompaktowy"
   }
 }

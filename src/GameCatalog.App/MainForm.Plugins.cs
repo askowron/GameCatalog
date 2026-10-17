@@ -18,7 +18,8 @@ public partial class MainForm : IGameCatalog, IGameSelection
 {
     private readonly ExtensionRegistry _extensions = new();
     private PluginManager? _plugins;
-    private readonly List<(string PluginId, IGamePanelPlugin Panel)> _panels = new();
+    private readonly List<(string PluginId, IGamePanelPlugin Panel, TabPage Tab)> _panels = new();
+    private readonly List<(string PluginId, ICatalogCommand Command, UIAction Action)> _commands = new();
 
     /// <summary>Called from OnLoad after the catalog is open.</summary>
     private void LoadExtensions()
@@ -188,10 +189,10 @@ public partial class MainForm : IGameCatalog, IGameSelection
             var host = CreateHost(pluginId);
             var action = new UIAction(components)
             {
-                Text = Guard(pluginId, () => command.Text, command.Id)!,
-                ToolTipText = Guard(pluginId, () => command.Hint, null) ?? "",
                 ShortcutKeys = PluginShortcut.TryParse(Guard(pluginId, () => command.Shortcut, null), out var keys) ? keys : Keys.None,
             };
+            _commands.Add((pluginId, command, action));
+            ApplyCommandTexts(pluginId, command, action);
             action.Execute += (_, _) => Guard(pluginId, () => command.Execute(host));
             // Update runs on idle: a failing CanExecute only disables the command (no message box loop).
             action.Update += (_, _) => action.Enabled = TryCanExecute(pluginId, command, host);
@@ -210,6 +211,20 @@ public partial class MainForm : IGameCatalog, IGameSelection
                 tsPlugins.Visible = true;
             }
         }
+    }
+
+    /// <summary>Command captions come from the plugin's translations; read again after a language change.</summary>
+    private void ApplyCommandTexts(string pluginId, ICatalogCommand command, UIAction action)
+    {
+        action.Text = Guard(pluginId, () => command.Text, command.Id)!;
+        action.ToolTipText = Guard(pluginId, () => command.Hint, null) ?? "";
+    }
+
+    /// <summary>Re-reads every plugin caption (commands, panel tabs) in the current language.</summary>
+    private void RefreshPluginCaptions()
+    {
+        foreach (var (pluginId, command, action) in _commands) ApplyCommandTexts(pluginId, command, action);
+        foreach (var (pluginId, panel, tab) in _panels) tab.Text = Guard(pluginId, () => panel.Title, pluginId)!;
     }
 
     private static bool TryCanExecute(string pluginId, ICatalogCommand command, IPluginHost host)
@@ -256,13 +271,13 @@ public partial class MainForm : IGameCatalog, IGameSelection
             var tab = new TabPage(Guard(pluginId, () => panel.Title, pluginId)) { Tag = pluginId };
             tab.Controls.Add(control);
             tabsGame.TabPages.Add(tab);
-            _panels.Add((pluginId, panel));
+            _panels.Add((pluginId, panel, tab));
         }
     }
 
     private void NotifyPanels()
     {
-        foreach (var (pluginId, panel) in _panels) Guard(pluginId, () => panel.OnCurrentGameChanged(_current));
+        foreach (var (pluginId, panel, _) in _panels) Guard(pluginId, () => panel.OnCurrentGameChanged(_current));
         CurrentChanged?.Invoke(this, EventArgs.Empty);
     }
 

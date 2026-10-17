@@ -31,6 +31,9 @@ public sealed class StatsCanvas : Control
     public bool ShowLabels { get; set; } = true;
     [System.ComponentModel.DesignerSerializationVisibility(System.ComponentModel.DesignerSerializationVisibility.Hidden)]
     public int ScrollOffset { get; set; }
+    /// <summary>Text drawn when there is nothing to chart (set by the owner in the UI language).</summary>
+    [System.ComponentModel.DesignerSerializationVisibility(System.ComponentModel.DesignerSerializationVisibility.Hidden)]
+    public string NoDataText { get; set; } = "";
 
     public StatsCanvas()
     {
@@ -54,7 +57,7 @@ public sealed class StatsCanvas : Control
         if (Data is null || Data.Labels.Count == 0)
         {
             var sf = new StringFormat { Alignment = StringAlignment.Center, LineAlignment = StringAlignment.Center };
-            g.DrawString("Brak danych", Font, Brushes.Gray, bounds, sf);
+            g.DrawString(NoDataText, Font, Brushes.Gray, bounds, sf);
             return;
         }
         if (Data.Kind == ChartKind.Bar) RenderBar(g, bounds, offset, showAll);

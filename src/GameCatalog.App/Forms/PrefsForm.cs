@@ -130,8 +130,8 @@ public partial class PrefsForm : Form
         numMaxCoverWidth.Value = Math.Clamp(MaxCoverWidth, 0, 4000);
         numScriptTimeout.Value = Math.Clamp(ScriptTimeoutSec, 5, 600);
 
-        foreach (var n in HtmlTemplates.Names) cbxHtmlTemplate.Items.Add(n);
-        cbxHtmlTemplate.SelectedItem = HtmlTemplate;
+        foreach (var n in HtmlTemplates.Names) cbxHtmlTemplate.Items.Add(new ListItem(n, HtmlTemplates.DisplayName(n)));
+        cbxHtmlTemplate.SelectedItem = cbxHtmlTemplate.Items.Cast<ListItem>().FirstOrDefault(i => i.Value == HtmlTemplate);
         if (cbxHtmlTemplate.SelectedIndex < 0) cbxHtmlTemplate.SelectedIndex = 0;
         cbxCsvDelimiter.Items.Add(new ListItem(";", l.Get("Prefs.Delimiter.Semicolon")));
         cbxCsvDelimiter.Items.Add(new ListItem(",", l.Get("Prefs.Delimiter.Comma")));
@@ -197,7 +197,7 @@ public partial class PrefsForm : Form
         ShowGroupCount = chkShowGroupCount.Checked;
         ShowExtraCategory = chkShowExtraCategory.Checked;
         CoverVisible = chkCoverVisible.Checked;
-        HtmlTemplate = cbxHtmlTemplate.SelectedItem?.ToString() ?? HtmlTemplate;
+        HtmlTemplate = (cbxHtmlTemplate.SelectedItem as ListItem)?.Value ?? HtmlTemplate;
         CsvDelimiter = (cbxCsvDelimiter.SelectedItem as ListItem)?.Value ?? CsvDelimiter;
         MediaPatterns = txtMediaPatterns.Text.Trim();
         if (string.IsNullOrWhiteSpace(MediaPatterns)) MediaPatterns = "*.exe";

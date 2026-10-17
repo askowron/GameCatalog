@@ -134,6 +134,19 @@ public class DialogSmokeTests
         Assert.Equal(new[] { "pnlPageGeneral" }, pages.Where(p => p.Visible).Select(p => p.Name));
     }
 
+    [Theory]
+    [InlineData("", "")]
+    [InlineData("en", "en")]
+    public void LanguageSelectForm_OffersSystemLanguageFirst(string stored, string expectedSelection)
+    {
+        AppServices.Languages.SetLanguage("en");
+        using var form = new LanguageSelectForm(AppServices.Languages.Available, stored);
+        _ = form.Handle;
+        var list = (ListView)form.Controls.Find("lvLanguages", true).Single();
+        Assert.Equal("System language", list.Items[0].Text);
+        Assert.Equal(expectedSelection, form.SelectedCode);
+    }
+
     [Fact]
     public void NumberDialog_CallerCaptionSurvivesTranslation()
     {

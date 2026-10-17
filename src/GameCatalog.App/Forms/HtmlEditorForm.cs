@@ -11,7 +11,7 @@ public partial class HtmlEditorForm : Form
     {
         InitializeComponent();
         _name = name;
-        Text = AppServices.Languages.Get("HtmlEditor.Caption", name);
+        Text = AppServices.Languages.Get("HtmlEditor.Caption", HtmlTemplates.DisplayName(name));
         txtEditor.Text = HtmlTemplates.Load(name);
         lstTags.DoubleClick += (_, _) => InsertTag();
         btnReset.Click += (_, _) => txtEditor.Text = HtmlTemplates.Default(_name);

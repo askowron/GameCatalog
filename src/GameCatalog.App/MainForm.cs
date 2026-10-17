@@ -1,4 +1,5 @@
 using GameCatalog.App.Services;
+using GameCatalog.Core.Fields;
 using GameCatalog.Core.Models;
 using GameCatalog.Localization;
 using GameCatalog.UI.Components;
@@ -207,6 +208,11 @@ public partial class MainForm : Form
         RefreshList();
         UpdateTitle();
         BindFrames();
+        RebuildRecentMenu();
+        RefreshPluginCaptions();
+        if (findBar.Visible)
+            findBar.SetFields(GameFields.Searchable.Select(f => (f.Tag, CatalogLabels.Current.Field(f.Tag))), findBar.FieldTag);
+        SetHint("");   // the last hint was written in the previous language
     }
 
     private void SetWindowIcon()

@@ -311,7 +311,7 @@ public partial class MainForm
     }
 
     private IEnumerable<ToolStripItem> HtmlTemplateItems() =>
-        HtmlTemplates.Names.Select(name => (ToolStripItem)MenuItem(name, _prefs.HtmlTemplate == name, () =>
+        HtmlTemplates.Names.Select(name => (ToolStripItem)MenuItem(HtmlTemplates.DisplayName(name), _prefs.HtmlTemplate == name, () =>
         {
             _prefs.HtmlTemplate = name;
             _prefs.Save();

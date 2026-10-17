@@ -9,7 +9,7 @@ public sealed record SearchSite(string Name, string Url);
 /// <summary>Application preferences (equivalent of the AMC options).</summary>
 public sealed class PrefsStore
 {
-    /// <summary>Language code chosen by the user; empty until the first-run language selection.</summary>
+    /// <summary>Language code chosen in Tools → Language; empty follows the system language.</summary>
     public string Language { get; set; } = "";
     public string Theme { get; set; } = IconThemeImageList.DefaultThemeId;
     public List<string> RecentFiles { get; set; } = new();

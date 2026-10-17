@@ -25,27 +25,13 @@ static class Program
 
         AppServices.Prefs = PrefsStore.Load();
         AppServices.Languages = new LanguageManager(AppPaths.LanguagesDirectory, LanguageManager.DefaultLanguageCode, AppLog.Write);
-        if (string.IsNullOrEmpty(AppServices.Prefs.Language)) ChooseFirstLanguage();
-        AppServices.Languages.SetLanguage(AppServices.Prefs.Language);
+        // An empty preference follows the system language (when a translation exists).
+        AppServices.Languages.SetLanguage(StartupLanguage.Resolve(AppServices.Prefs.Language,
+            AppServices.Languages.Available, System.Globalization.CultureInfo.CurrentUICulture, LanguageManager.DefaultLanguageCode));
         WireTranslations(AppServices.Languages);
         GameCatalog.UI.Components.Localizer.Translator = AppServices.Languages;
 
         Application.Run(new MainForm());
-    }
-
-    /// <summary>First start: asks for the interface language, preselecting the system language when a translation exists.</summary>
-    private static void ChooseFirstLanguage()
-    {
-        var languages = AppServices.Languages;
-        var system = System.Globalization.CultureInfo.CurrentUICulture.TwoLetterISOLanguageName;
-        var preselect = languages.Available.Any(l => l.Code.Equals(system, StringComparison.OrdinalIgnoreCase))
-            ? system
-            : LanguageManager.DefaultLanguageCode;
-        languages.SetLanguage(preselect);
-        GameCatalog.UI.Components.Localizer.Translator = languages;
-        using var choose = new Forms.LanguageSelectForm(languages.Available, preselect) { StartPosition = FormStartPosition.CenterScreen };
-        AppServices.Prefs.Language = choose.ShowDialog() == DialogResult.OK && choose.SelectedCode is { } code ? code : preselect;
-        AppServices.Prefs.Save();
     }
 
     /// <summary>Points the UI-free layers at the active language.</summary>

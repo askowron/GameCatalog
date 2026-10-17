@@ -50,7 +50,7 @@ App                           → all of the above
   - `Components/`: `UIAction` + `ActionList` (AMC `TActionList`: one action drives menu items, toolbar buttons and shortcuts; `Update` runs on idle), `Localizer` (translates its container from the `forms` section on handle creation and on language change), `IconThemeImageList` (AMC toolbar icon themes from `Resources/*.bmp`; the `AmcIcon` enum order must match the strip order — never reorder it).
   - `Controls/`: `GameListView`, `ThumbnailView`, `HtmlPreview` (WebView2 with a fallback message), `PictureToolWindow`, `FindBar`, `StatsCanvas`.
   - `Frames/`: `GameFrame`, `GameCustomFrame`, `GameExtrasFrame`, `GameExtraFrame`, `GameAllFieldsFrame` (AMC frame*.pas); they `Bind(game)` and `Commit()` edits back.
-- **GameCatalog.App**: `Program` (logging, global error handlers, first-run language choice), `MainForm` split into partial files by menu (`MainForm.File/Game/View/Tools/Plugins.cs`), dialogs in `Forms/`, and `Services/`: `CatalogSession` (open/save/dirty/undo, commit-after-success), `UndoService`, `NumberingService`, `GameListPresenter`, `GameClipboard`, `CoverImages`, `PrefsStore` (JSON at `Documents\GameCatalog\prefs.json`), `AppPaths`, `HtmlTemplates`. Logs go to `Documents\GameCatalog\Logs`.
+- **GameCatalog.App**: `Program` (logging, global error handlers, start language = `PrefsStore.Language` or, when empty, the system language via `StartupLanguage`), `MainForm` split into partial files by menu (`MainForm.File/Game/View/Tools/Plugins.cs`), dialogs in `Forms/`, and `Services/`: `CatalogSession` (open/save/dirty/undo, commit-after-success), `UndoService`, `NumberingService`, `GameListPresenter`, `GameClipboard`, `CoverImages`, `PrefsStore` (JSON at `Documents\GameCatalog\prefs.json`), `AppPaths`, `HtmlTemplates`. Logs go to `Documents\GameCatalog\Logs`.
 
 ## Designer conventions
 
@@ -64,7 +64,8 @@ App                           → all of the above
 
 xUnit v2 projects in `tests/`: `Core`, `Storage`, `Localization`, `Plugins.Hosting` (installs the sample plugin and `tests/Fixtures/GameCatalog.Plugin.TestFixtures` into a temp folder), `Scripting`, `UI`, `App`. UI and App tests run sequentially (static `Localizer.Translator` / `AppServices`). Rule tests to keep green:
 - `LanguageFilesTests`: `en.json` has exactly the keys of `pl.json` — add every key to both files in the same commit.
-- `SourceRulesTests`: no Polish comments anywhere in `src/`, and no Polish string literals outside `.Designer.cs` files and the listed data files.
+- `SourceRulesTests`: no Polish comments anywhere in `src/`, and no Polish string literals (diacritics or a list of common words without them) outside `.Designer.cs` files and the listed data files.
+- Texts set in code must follow a language switch: `MainForm.OnLanguageChanged` re-reads everything built at runtime (plugin captions, recent-files menu, find bar fields). Built-in HTML templates use `{L:Key}` caption placeholders.
 - `DialogSmokeTests`: every dialog constructs and translates in both languages — add new dialogs to its list.
 
 UI is verified manually (both languages).

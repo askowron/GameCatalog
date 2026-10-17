@@ -10,6 +10,10 @@ namespace GameCatalog.App.Tests;
 public class SourceRulesTests
 {
     private static readonly Regex PolishLetters = new("[ąćęłńóśźżĄĆĘŁŃÓŚŹŻ]", RegexOptions.Compiled);
+    /// <summary>Common Polish UI words written without diacritics, which the letter check cannot see.</summary>
+    private static readonly Regex PolishWords = new(
+        @"\b(Brak|brak|danych|Tak|Nie|Inne|Opcje|Zamknij|Dodaj|Edytuj|Anuluj|Zapisz|Pomoc|Nazwa|Wersja|Katalog|Plik|Pliki|Gra|Gry|gry|Wydawca|Gatunek|Platforma|Okladka|Numer|Wybierz|Szukaj|Kategoria|Wszystkie|Wybrane|Zaznaczone|Widoczne)\b",
+        RegexOptions.Compiled);
     private static readonly Regex StringLiteral = new("\"(?:[^\"\\\\]|\\\\.)*\"", RegexOptions.Compiled);
 
     /// <summary>Files whose Polish literals are catalog data or user-editable content, not UI text.</summary>
@@ -22,6 +26,7 @@ public class SourceRulesTests
         "GameCatalog.Storage/AmcXmlImporter.cs",       // stored media type values
         "GameCatalog.Scripting/ScriptSamples.cs",      // sample script bodies
         "GameCatalog.UI/Components/IconThemeImageList.cs", // legacy theme names read from old prefs.json
+        "GameCatalog.Core/Fields/YesNo.cs",            // legacy stored value "Tak"
     };
 
     private static string SrcRoot()
@@ -67,7 +72,7 @@ public class SourceRulesTests
             {
                 var code = lines[i].Split("//")[0];
                 foreach (Match m in StringLiteral.Matches(code))
-                    if (PolishLetters.IsMatch(m.Value)) offenders.Add($"{file}:{i + 1}: {m.Value}");
+                    if (PolishLetters.IsMatch(m.Value) || PolishWords.IsMatch(m.Value)) offenders.Add($"{file}:{i + 1}: {m.Value}");
             }
         }
         Assert.True(offenders.Count == 0, "Hard-coded Polish text (move it to Languages/*.json):\n" + string.Join("\n", offenders));

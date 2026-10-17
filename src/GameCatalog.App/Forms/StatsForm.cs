@@ -45,6 +45,7 @@ public partial class StatsForm : Form
         _selected = selectedNumber;
         _catalogPath = catalogPath;
         LoadIcons();
+        chartCanvas.NoDataText = AppServices.Languages.Get("Stats.NoData");
 
         lstCategories.SelectedIndexChanged += (_, _) => RefreshStats();
         foreach (var rb in new[] { rbAll, rbSelected, rbChecked, rbVisible })

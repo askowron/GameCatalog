@@ -3,6 +3,7 @@ using GameCatalog.App.Forms;
 using GameCatalog.App.Services;
 using GameCatalog.Core.Fields;
 using GameCatalog.Core.Models;
+using GameCatalog.Localization;
 using GameCatalog.Plugins.Abstractions;
 using GameCatalog.Scripting;
 using GameCatalog.UI.Components;
@@ -208,11 +209,13 @@ public partial class MainForm
 
     private void actLanguage_Execute(object? sender, EventArgs e)
     {
-        using var form = new LanguageSelectForm(AppServices.Languages.Available, AppServices.Languages.CurrentLanguage);
+        using var form = new LanguageSelectForm(AppServices.Languages.Available, _prefs.Language);
         if (form.ShowDialog(this) != DialogResult.OK || form.SelectedCode is not { } code) return;
-        AppServices.Languages.SetLanguage(code);   // every open window re-translates itself
-        _prefs.Language = code;
+        _prefs.Language = code;   // empty = follow the system language
         _prefs.Save();
+        // Every open window re-translates itself.
+        AppServices.Languages.SetLanguage(StartupLanguage.Resolve(code, AppServices.Languages.Available,
+            System.Globalization.CultureInfo.CurrentUICulture, LanguageManager.DefaultLanguageCode));
     }
 
     private void actHelpExportTranslation_Execute(object? sender, EventArgs e)

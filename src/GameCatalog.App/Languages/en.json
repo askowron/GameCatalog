@@ -658,6 +658,14 @@
     "Action.Language.Hint": "Interface language",
     "Action.HelpExportTranslation": "Export translation &template…",
     "Action.HelpExportTranslation.Hint": "Save a language file for translators",
-    "Filter.Json": "JSON (*.json)|*.json"
+    "Filter.Json": "JSON (*.json)|*.json",
+
+    "Language.System": "System language",
+    "Stats.NoData": "No data",
+    "Html.Playtime": "Playtime",
+    "Html.Extras": "Extras / DLC",
+    "Html.Rating": "rating",
+    "HtmlTemplate.Detailed": "Detailed",
+    "HtmlTemplate.Compact": "Compact"
   }
 }

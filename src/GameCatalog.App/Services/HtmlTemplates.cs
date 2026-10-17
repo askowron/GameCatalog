@@ -12,6 +12,9 @@ namespace GameCatalog.App.Services;
 /// </summary>
 public static class HtmlTemplates
 {
+    private static readonly System.Text.RegularExpressions.Regex LabelPlaceholder =
+        new(@"\{L:([A-Za-z0-9_.]+)\}", System.Text.RegularExpressions.RegexOptions.Compiled);
+
     public static readonly IReadOnlyList<string> Names = new[] { "Szczegółowy", "Kompaktowy" };
 
     public static string Default(string name) => name == "Kompaktowy" ? Compact : Detailed;
@@ -22,28 +25,36 @@ public static class HtmlTemplates
         "<i>{LocalizedTitle}</i><br>\n" +
         "{Cover}\n" +
         "<table cellpadding='3'>\n" +
-        "<tr><td><b>Developer</b></td><td>{Developer}</td></tr>\n" +
-        "<tr><td><b>Wydawca</b></td><td>{Publisher}</td></tr>\n" +
-        "<tr><td><b>Rok wydania</b></td><td>{ReleaseYear}</td></tr>\n" +
-        "<tr><td><b>Gatunek</b></td><td>{Genre}</td></tr>\n" +
-        "<tr><td><b>Platforma</b></td><td>{Platform}</td></tr>\n" +
-        "<tr><td><b>Status</b></td><td>{Status}</td></tr>\n" +
-        "<tr><td><b>Czas gry</b></td><td>{PlaytimeHours}</td></tr>\n" +
-        "<tr><td><b>Ocena własna</b></td><td>{UserRating}</td></tr>\n" +
-        "<tr><td><b>Ocena recenzentów</b></td><td>{CriticRating}</td></tr>\n" +
-        "<tr><td><b>Sklep</b></td><td>{Store}</td></tr>\n" +
-        "<tr><td><b>Silnik</b></td><td>{Engine}</td></tr>\n" +
+        "<tr><td><b>{L:Field.Developer}</b></td><td>{Developer}</td></tr>\n" +
+        "<tr><td><b>{L:Field.Publisher}</b></td><td>{Publisher}</td></tr>\n" +
+        "<tr><td><b>{L:Field.ReleaseYear}</b></td><td>{ReleaseYear}</td></tr>\n" +
+        "<tr><td><b>{L:Field.Genre}</b></td><td>{Genre}</td></tr>\n" +
+        "<tr><td><b>{L:Field.Platform}</b></td><td>{Platform}</td></tr>\n" +
+        "<tr><td><b>{L:Field.CompletionStatus}</b></td><td>{Status}</td></tr>\n" +
+        "<tr><td><b>{L:Html.Playtime}</b></td><td>{PlaytimeHours}</td></tr>\n" +
+        "<tr><td><b>{L:Field.UserRating}</b></td><td>{UserRating}</td></tr>\n" +
+        "<tr><td><b>{L:Field.CriticRating}</b></td><td>{CriticRating}</td></tr>\n" +
+        "<tr><td><b>{L:Field.Store}</b></td><td>{Store}</td></tr>\n" +
+        "<tr><td><b>{L:Field.Engine}</b></td><td>{Engine}</td></tr>\n" +
         "</table>\n" +
         "<p>{Description}</p>\n" +
-        "<b>Dodatki / DLC:</b>{Extras}\n" +
+        "<b>{L:Html.Extras}:</b>{Extras}\n" +
         "</body></html>\n";
 
     public const string Compact =
         "<html><head><meta charset='utf-8'></head><body style='font-family:Segoe UI,Arial;font-size:12px;background:#fff'>\n" +
         "<b>{Title}</b> ({ReleaseYear}) — {Genre} / {Platform} — {Status}<br>\n" +
-        "{Developer} / {Publisher} — ocena: {UserRating}<br>\n" +
+        "{Developer} / {Publisher} — {L:Html.Rating}: {UserRating}<br>\n" +
         "{Description}\n" +
         "</body></html>\n";
+
+    /// <summary>Name shown in menus: built-in templates are translated, user templates keep their file name.</summary>
+    public static string DisplayName(string name)
+    {
+        int index = Names.ToList().IndexOf(name);
+        string[] keys = { "HtmlTemplate.Detailed", "HtmlTemplate.Compact" };
+        return index >= 0 && AppServices.Languages is { } l ? l.Get(keys[index]) : name;
+    }
 
     public static string CustomPath(string name)
     {
@@ -72,6 +83,8 @@ public static class HtmlTemplates
         string cover = coverUri is null ? "" :
             $"<img src='{coverUri}' style='max-width:220px;float:right;margin:0 0 8px 8px'>";
         string desc = H(g.Description).Replace("\n", "<br>");
+        // {L:Key} placeholders are captions in the UI language (used by the built-in templates).
+        template = LabelPlaceholder.Replace(template, m => H(AppServices.Languages is { } l ? l.Get(m.Groups[1].Value) : m.Groups[1].Value));
         return template
             .Replace("{Title}", H(g.Title))
             .Replace("{LocalizedTitle}", H(g.LocalizedTitle))
