@@ -16,11 +16,13 @@ Interfejs po polsku i angielsku (domyślnie język systemu).*
 
 ## Screenshots
 
-<!-- Add PNG files to docs/images and uncomment:
 ![Main window](docs/images/main-window.png)
-![Game card](docs/images/game-card.png)
-![Thumbnails](docs/images/thumbnails.png)
--->
+
+| HTML game card | Thumbnails |
+|---|---|
+| ![HTML game card](docs/images/game-card.png) | ![Thumbnails](docs/images/thumbnails.png) |
+
+<sub>Demo catalog; the covers are generated placeholders.</sub>
 
 ## Features
 
