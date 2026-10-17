@@ -4,7 +4,7 @@ namespace GameCatalog.Plugins.Abstractions;
 
 /// <summary>
 /// Result of fetching information about a game — produced by .gcsx scripts and by
-/// <c>IGameInfoProvider</c> plugins, shown to the user in the same results window
+/// <see cref="IGameInfoProvider"/> plugins, shown to the user in the same results window
 /// (AMC getscript_results). Nothing is applied to the game until the user confirms.
 /// </summary>
 public sealed class GameInfoResult

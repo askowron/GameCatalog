@@ -1,0 +1,27 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <UseWindowsForms>true</UseWindowsForms>
+    <!-- Produces a .deps.json so the host can resolve the plugin's private dependencies. -->
+    <EnableDynamicLoading>true</EnableDynamicLoading>
+  </PropertyGroup>
+  <ItemGroup>
+    <!-- Contracts are provided by the host at runtime: compile against them, do not copy them. -->
+    <ProjectReference Include="..\..\src\GameCatalog.Plugins.Abstractions.WinForms\GameCatalog.Plugins.Abstractions.WinForms.csproj" Private="false" ExcludeAssets="runtime" />
+    <ProjectReference Include="..\..\src\GameCatalog.Plugins.Abstractions\GameCatalog.Plugins.Abstractions.csproj" Private="false" ExcludeAssets="runtime" />
+    <ProjectReference Include="..\..\src\GameCatalog.Core\GameCatalog.Core.csproj" Private="false" ExcludeAssets="runtime" />
+    <ProjectReference Include="..\..\src\GameCatalog.Localization\GameCatalog.Localization.csproj" Private="false" ExcludeAssets="runtime" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Languages\*.json" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+  <!-- Debug builds deploy the plugin next to the app: bin\Debug\net10.0-windows\Plugins\GameCatalog.Plugin.Sample -->
+  <Target Name="DeployToApp" AfterTargets="Build" Condition="'$(Configuration)' == 'Debug'">
+    <ItemGroup>
+      <PluginFiles Include="$(OutDir)**\*.*" />
+    </ItemGroup>
+    <Copy SourceFiles="@(PluginFiles)"
+          DestinationFolder="$(MSBuildThisFileDirectory)..\..\src\GameCatalog.App\bin\$(Configuration)\net10.0-windows\Plugins\$(MSBuildProjectName)\%(RecursiveDir)"
+          SkipUnchangedFiles="true" />
+  </Target>
+</Project>

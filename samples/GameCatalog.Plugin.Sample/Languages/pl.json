@@ -1,0 +1,13 @@
+{
+  "language": { "code": "pl", "name": "Polski" },
+  "strings": {
+    "ImportJson": "Z pliku JSON (przykładowy plugin)…",
+    "ExportJson": "Do pliku JSON (przykładowy plugin)…",
+    "InfoProvider": "Przykładowy dostawca danych",
+    "InfoComment": "Sprawdzono „{0}” przykładowym pluginem ({1}).",
+    "CheckWithoutCover": "Zaznacz gry bez okładki",
+    "CheckWithoutCoverHint": "Zaznacza gry, które nie mają okładki",
+    "PanelTitle": "Podsumowanie",
+    "PanelSummary": "{0}\n\nDodatki: {1}\nCzas gry: {2:0.#} h"
+  }
+}

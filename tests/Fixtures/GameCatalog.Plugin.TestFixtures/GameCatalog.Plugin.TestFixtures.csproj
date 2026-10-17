@@ -1,0 +1,11 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <EnableDynamicLoading>true</EnableDynamicLoading>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\src\GameCatalog.Plugins.Abstractions\GameCatalog.Plugins.Abstractions.csproj" Private="false" ExcludeAssets="runtime" />
+    <ProjectReference Include="..\..\..\src\GameCatalog.Core\GameCatalog.Core.csproj" Private="false" ExcludeAssets="runtime" />
+    <ProjectReference Include="..\..\..\src\GameCatalog.Localization\GameCatalog.Localization.csproj" Private="false" ExcludeAssets="runtime" />
+  </ItemGroup>
+</Project>

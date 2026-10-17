@@ -18,6 +18,9 @@
     <Project Path="tests/GameCatalog.Scripting.Tests/GameCatalog.Scripting.Tests.csproj" />
     <Project Path="tests/GameCatalog.Storage.Tests/GameCatalog.Storage.Tests.csproj" />
     <Project Path="tests/GameCatalog.UI.Tests/GameCatalog.UI.Tests.csproj" />
+    <Project Path="tests/Fixtures/GameCatalog.Plugin.TestFixtures/GameCatalog.Plugin.TestFixtures.csproj" />
   </Folder>
-  <Folder Name="/samples/" />
+  <Folder Name="/samples/">
+    <Project Path="samples/GameCatalog.Plugin.Sample/GameCatalog.Plugin.Sample.csproj" />
+  </Folder>
 </Solution>

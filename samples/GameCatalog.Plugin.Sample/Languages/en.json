@@ -1,0 +1,13 @@
+{
+  "language": { "code": "en", "name": "English" },
+  "strings": {
+    "ImportJson": "From a JSON file (sample plugin)…",
+    "ExportJson": "To a JSON file (sample plugin)…",
+    "InfoProvider": "Sample data provider",
+    "InfoComment": "Checked “{0}” with the sample plugin ({1}).",
+    "CheckWithoutCover": "Check games without a cover",
+    "CheckWithoutCoverHint": "Checks the games that have no cover",
+    "PanelTitle": "Summary",
+    "PanelSummary": "{0}\n\nExtras: {1}\nPlaytime: {2:0.#} h"
+  }
+}

@@ -19,6 +19,10 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\GameCatalog.Plugins.Hosting\GameCatalog.Plugins.Hosting.csproj" />
+    <ProjectReference Include="..\..\src\GameCatalog.Plugins.Abstractions.WinForms\GameCatalog.Plugins.Abstractions.WinForms.csproj" />
+    <!-- Built (not referenced) so their outputs can be installed into a temporary Plugins folder. -->
+    <ProjectReference Include="..\..\samples\GameCatalog.Plugin.Sample\GameCatalog.Plugin.Sample.csproj" ReferenceOutputAssembly="false" />
+    <ProjectReference Include="..\Fixtures\GameCatalog.Plugin.TestFixtures\GameCatalog.Plugin.TestFixtures.csproj" ReferenceOutputAssembly="false" />
   </ItemGroup>
 
 </Project>
