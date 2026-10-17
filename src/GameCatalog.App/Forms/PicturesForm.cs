@@ -1,53 +1,34 @@
+using GameCatalog.App.Services;
 using GameCatalog.Core.Catalog;
+using GameCatalog.Core.Fields;
 using GameCatalog.Core.Models;
 
-namespace GameCatalog.App;
+namespace GameCatalog.App.Forms;
 
-/// <summary>Zarządzanie okładkami — przegląd gier z/bez okładki, wczytywanie, usuwanie, eksport.</summary>
-public sealed class PicturesForm : Form
+/// <summary>Cover management: games with/without a cover, load, delete, export (AMC pictures manager).</summary>
+public partial class PicturesForm : Form
 {
     private readonly GameList _model;
-    private readonly DataGridView _grid = new() { Dock = DockStyle.Fill };
 
     public PicturesForm(GameList model)
     {
+        InitializeComponent();
         _model = model;
-        Text = "Zarządzanie obrazkami";
-        Width = 520; Height = 420;
-        StartPosition = FormStartPosition.CenterParent;
-        _grid.ReadOnly = true;
-        _grid.AllowUserToAddRows = false;
-        _grid.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
-        _grid.MultiSelect = false;
-        _grid.AutoGenerateColumns = false;
-        _grid.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = "Number", HeaderText = "#", Width = 45 });
-        _grid.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = "Title", HeaderText = "Tytuł", Width = 260 });
-        _grid.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = "Has", HeaderText = "Okładka", Width = 80 });
         RefreshGrid();
-        var bar = new FlowLayoutPanel { Dock = DockStyle.Bottom, Height = 44, Padding = new Padding(8) };
-        var bLoad = new Button { Text = "Wczytaj…", AutoSize = true };
-        var bDel = new Button { Text = "Usuń", AutoSize = true };
-        var bExp = new Button { Text = "Eksportuj wszystkie…", AutoSize = true };
-        var bClose = new Button { Text = "Zamknij", DialogResult = DialogResult.OK, AutoSize = true };
-        bLoad.Click += (_, _) => LoadForSelected();
-        bDel.Click += (_, _) => DeleteForSelected();
-        bExp.Click += (_, _) => ExportAll();
-        bar.Controls.AddRange(new Control[] { bLoad, bDel, bExp, bClose });
-        Controls.Add(_grid);
-        Controls.Add(bar);
+        btnLoad.Click += (_, _) => LoadForSelected();
+        btnDelete.Click += (_, _) => DeleteForSelected();
+        btnExportAll.Click += (_, _) => ExportAll();
     }
 
-    private Game? Selected()
-    {
-        if (_grid.CurrentRow?.DataBoundItem is DataBoundItem<Game> w) return w.Value;
-        return null;
-    }
+    private Game? Selected() =>
+        grdCovers.CurrentRow?.DataBoundItem is DataBoundItem<Game> w ? w.Value : null;
 
     private void RefreshGrid()
     {
-        _grid.DataSource = new System.ComponentModel.BindingList<object>(_model.Games
+        var labels = CatalogLabels.Current;
+        grdCovers.DataSource = new System.ComponentModel.BindingList<object>(_model.Games
             .OrderBy(g => g.Number)
-            .Select(g => (object)new DataBoundItem<Game>(g.Number, g.Title, g.HasCover ? "Tak" : "Nie", g))
+            .Select(g => (object)new DataBoundItem<Game>(g.Number, g.Title, g.HasCover ? labels.Yes : labels.No, g))
             .ToList());
     }
 
@@ -55,7 +36,7 @@ public sealed class PicturesForm : Form
     {
         var g = Selected();
         if (g is null) return;
-        using var o = new OpenFileDialog { Filter = "Obrazy (*.jpg;*.jpeg;*.png;*.gif;*.bmp)|*.jpg;*.jpeg;*.png;*.gif;*.bmp" };
+        using var o = new OpenFileDialog { Filter = AppServices.Languages.Get("Filter.Images") };
         if (o.ShowDialog(this) != DialogResult.OK) return;
         g.CoverImage = File.ReadAllBytes(o.FileName);
         RefreshGrid();
@@ -71,15 +52,16 @@ public sealed class PicturesForm : Form
 
     private void ExportAll()
     {
-        using var f = new FolderBrowserDialog { Description = "Folder docelowy okładek" };
+        var l = AppServices.Languages;
+        using var f = new FolderBrowserDialog { Description = l.Get("Pictures.SelectFolder") };
         if (f.ShowDialog(this) != DialogResult.OK) return;
         int n = 0;
         foreach (var g in _model.Games.Where(g => g.HasCover))
         {
-            try { File.WriteAllBytes(Path.Combine(f.SelectedPath, $"okladka_{g.Number}.png"), g.CoverImage!); n++; }
+            try { File.WriteAllBytes(Path.Combine(f.SelectedPath, l.Get("File.CoverName", g.Number)), g.CoverImage!); n++; }
             catch { }
         }
-        MessageBox.Show(this, $"Wyeksportowano {n} okładek.", "Zarządzanie obrazkami");
+        MessageBox.Show(this, l.Get("Pictures.Exported", n), Text);
         RefreshGrid();
     }
 

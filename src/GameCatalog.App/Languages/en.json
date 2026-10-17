@@ -189,6 +189,29 @@
       "btnRun.Text": "Test run",
       "btnSave.Text": "Save",
       "btnClose.Text": "Close"
+    },
+    "PicturesForm": {
+      "$this.Text": "Manage pictures",
+      "colNumber.HeaderText": "#",
+      "colTitle.HeaderText": "Title",
+      "colCover.HeaderText": "Cover",
+      "btnLoad.Text": "Load…",
+      "btnDelete.Text": "Delete",
+      "btnExportAll.Text": "Export all…",
+      "btnClose.Text": "Close"
+    },
+    "LoanForm": {
+      "$this.Text": "Loans",
+      "colGame.HeaderText": "Game",
+      "colBorrower.HeaderText": "Lent to",
+      "colLoanDate.HeaderText": "Loan date",
+      "colReturnDate.HeaderText": "Return date",
+      "colState.HeaderText": "State",
+      "lblGame.Text": "Game:",
+      "lblBorrower.Text": "To:",
+      "btnBorrow.Text": "Lend",
+      "btnReturn.Text": "Return selected",
+      "btnClose.Text": "Close"
     }
   },
   "strings": {
@@ -490,6 +513,13 @@
     "Scripts.ConfirmDelete": "Delete the script \"{0}\"?",
     "Scripts.Properties": "Name: {0}\nDescription: {1}\nVersion: {2}\nAuthor: {3}\nSite: {4}",
     "Scripts.NewName": "New script",
-    "Scripts.Running": "Running…"
+    "Scripts.Running": "Running…",
+
+    "Pictures.SelectFolder": "Destination folder for covers",
+    "Pictures.Exported": "Exported {0} covers.",
+    "Loans.StatusLent": "lent",
+    "Loans.StatusReturned": "returned",
+    "Loans.BorrowerRequired": "Enter who you are lending the game to.",
+    "Loans.BorrowTitle": "Loan"
   }
 }

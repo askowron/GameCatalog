@@ -189,6 +189,29 @@
       "btnRun.Text": "Uruchom testowo",
       "btnSave.Text": "Zapisz",
       "btnClose.Text": "Zamknij"
+    },
+    "PicturesForm": {
+      "$this.Text": "Zarządzanie obrazkami",
+      "colNumber.HeaderText": "#",
+      "colTitle.HeaderText": "Tytuł",
+      "colCover.HeaderText": "Okładka",
+      "btnLoad.Text": "Wczytaj…",
+      "btnDelete.Text": "Usuń",
+      "btnExportAll.Text": "Eksportuj wszystkie…",
+      "btnClose.Text": "Zamknij"
+    },
+    "LoanForm": {
+      "$this.Text": "Wypożyczenia",
+      "colGame.HeaderText": "Gra",
+      "colBorrower.HeaderText": "Pożyczono komu",
+      "colLoanDate.HeaderText": "Data wypoż.",
+      "colReturnDate.HeaderText": "Data zwrotu",
+      "colState.HeaderText": "Stan",
+      "lblGame.Text": "Gra:",
+      "lblBorrower.Text": "Komu:",
+      "btnBorrow.Text": "Pożycz",
+      "btnReturn.Text": "Zwróć zaznaczone",
+      "btnClose.Text": "Zamknij"
     }
   },
   "strings": {
@@ -490,6 +513,13 @@
     "Scripts.ConfirmDelete": "Usunąć skrypt „{0}”?",
     "Scripts.Properties": "Nazwa: {0}\nOpis: {1}\nWersja: {2}\nAutor: {3}\nStrona: {4}",
     "Scripts.NewName": "Nowy skrypt",
-    "Scripts.Running": "Uruchamiam…"
+    "Scripts.Running": "Uruchamiam…",
+
+    "Pictures.SelectFolder": "Folder docelowy okładek",
+    "Pictures.Exported": "Wyeksportowano {0} okładek.",
+    "Loans.StatusLent": "wypożyczona",
+    "Loans.StatusReturned": "zwrócona",
+    "Loans.BorrowerRequired": "Podaj komu pożyczasz.",
+    "Loans.BorrowTitle": "Wypożyczenie"
   }
 }
