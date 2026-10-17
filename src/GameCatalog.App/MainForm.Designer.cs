@@ -965,7 +965,7 @@ namespace GameCatalog.App
             //
             this.tsPlugins.Dock = System.Windows.Forms.DockStyle.None;
             this.iconThemes.SetUseThemeIcons(this.tsPlugins, true);
-            this.tsPlugins.Location = new System.Drawing.Point(903, 0);
+            this.tsPlugins.Location = new System.Drawing.Point(3, 25);
             this.tsPlugins.Name = "tsPlugins";
             this.tsPlugins.Size = new System.Drawing.Size(43, 25);
             this.tsPlugins.TabIndex = 1;

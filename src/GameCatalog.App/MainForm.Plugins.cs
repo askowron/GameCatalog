@@ -208,7 +208,13 @@ public partial class MainForm : IGameCatalog, IGameSelection
                 var button = new ToolStripButton { DisplayStyle = ToolStripItemDisplayStyle.Image, Image = icon };
                 tsPlugins.Items.Add(button);
                 actionList.SetAction(button, action);
-                tsPlugins.Visible = true;
+                if (!tsPlugins.Visible)
+                {
+                    // Hidden, it waits on its own row (on the main row it would push tsMain to the right);
+                    // shown, it joins the main toolbar's row.
+                    tsPlugins.Visible = true;
+                    tsPlugins.Location = new Point(tsMain.Right, tsMain.Top);
+                }
             }
         }
     }
