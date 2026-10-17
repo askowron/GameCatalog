@@ -101,6 +101,7 @@ namespace GameCatalog.App
             this.mnuLoans = new System.Windows.Forms.ToolStripMenuItem();
             this.mnuStats = new System.Windows.Forms.ToolStripMenuItem();
             this.mnuHtmlEditor = new System.Windows.Forms.ToolStripMenuItem();
+            this.mnuPlugins = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripSeparator9 = new System.Windows.Forms.ToolStripSeparator();
             this.mnuPreferences = new System.Windows.Forms.ToolStripMenuItem();
             this.mnuHelp = new System.Windows.Forms.ToolStripMenuItem();
@@ -114,6 +115,7 @@ namespace GameCatalog.App
             this.stHint = new System.Windows.Forms.ToolStripStatusLabel();
             this.toolStripContainer = new System.Windows.Forms.ToolStripContainer();
             this.tsMain = new System.Windows.Forms.ToolStrip();
+            this.tsPlugins = new System.Windows.Forms.ToolStrip();
             this.tbFileNew = new System.Windows.Forms.ToolStripButton();
             this.tbFileOpen = new System.Windows.Forms.ToolStripButton();
             this.tbFileSave = new System.Windows.Forms.ToolStripButton();
@@ -247,6 +249,7 @@ namespace GameCatalog.App
             this.actLoans = new GameCatalog.UI.Components.UIAction(this.components);
             this.actStats = new GameCatalog.UI.Components.UIAction(this.components);
             this.actHtmlEditor = new GameCatalog.UI.Components.UIAction(this.components);
+            this.actPlugins = new GameCatalog.UI.Components.UIAction(this.components);
             this.actPreferences = new GameCatalog.UI.Components.UIAction(this.components);
             this.actHelpIndex = new GameCatalog.UI.Components.UIAction(this.components);
             this.actHelpAbout = new GameCatalog.UI.Components.UIAction(this.components);
@@ -257,6 +260,7 @@ namespace GameCatalog.App
             this.toolStripContainer.TopToolStripPanel.SuspendLayout();
             this.toolStripContainer.SuspendLayout();
             this.tsMain.SuspendLayout();
+            this.tsPlugins.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.splitMain)).BeginInit();
             this.splitMain.Panel1.SuspendLayout();
             this.splitMain.Panel2.SuspendLayout();
@@ -733,6 +737,7 @@ namespace GameCatalog.App
             this.mnuLoans,
             this.mnuStats,
             this.mnuHtmlEditor,
+            this.mnuPlugins,
             this.toolStripSeparator9,
             this.mnuPreferences});
             this.mnuTools.Name = "mnuTools";
@@ -785,6 +790,12 @@ namespace GameCatalog.App
             this.actionList.SetAction(this.mnuHtmlEditor, this.actHtmlEditor);
             this.mnuHtmlEditor.Name = "mnuHtmlEditor";
             this.mnuHtmlEditor.Size = new System.Drawing.Size(240, 22);
+            //
+            // mnuPlugins
+            //
+            this.actionList.SetAction(this.mnuPlugins, this.actPlugins);
+            this.mnuPlugins.Name = "mnuPlugins";
+            this.mnuPlugins.Size = new System.Drawing.Size(240, 22);
             //
             // toolStripSeparator9
             //
@@ -882,6 +893,7 @@ namespace GameCatalog.App
             // toolStripContainer.TopToolStripPanel
             //
             this.toolStripContainer.TopToolStripPanel.Controls.Add(this.tsMain);
+            this.toolStripContainer.TopToolStripPanel.Controls.Add(this.tsPlugins);
             //
             // tsMain
             //
@@ -930,6 +942,16 @@ namespace GameCatalog.App
             this.tsMain.Name = "tsMain";
             this.tsMain.Size = new System.Drawing.Size(900, 25);
             this.tsMain.TabIndex = 0;
+            //
+            // tsPlugins
+            //
+            this.tsPlugins.Dock = System.Windows.Forms.DockStyle.None;
+            this.iconThemes.SetUseThemeIcons(this.tsPlugins, true);
+            this.tsPlugins.Location = new System.Drawing.Point(903, 0);
+            this.tsPlugins.Name = "tsPlugins";
+            this.tsPlugins.Size = new System.Drawing.Size(43, 25);
+            this.tsPlugins.TabIndex = 1;
+            this.tsPlugins.Visible = false;
             //
             // tbFileNew
             //
@@ -2024,6 +2046,13 @@ namespace GameCatalog.App
             this.actHtmlEditor.ToolTipText = "Edytor HTML";
             this.actHtmlEditor.Execute += new System.EventHandler(this.actHtmlEditor_Execute);
             //
+            // actPlugins
+            //
+            this.actPlugins.Key = "Plugins";
+            this.actPlugins.Text = "Plugin&y…";
+            this.actPlugins.ToolTipText = "Pluginy";
+            this.actPlugins.Execute += new System.EventHandler(this.actPlugins_Execute);
+            //
             // actPreferences
             //
             this.actPreferences.Icon = GameCatalog.UI.Icons.AmcIcon.Options;
@@ -2083,6 +2112,8 @@ namespace GameCatalog.App
             this.toolStripContainer.PerformLayout();
             this.tsMain.ResumeLayout(false);
             this.tsMain.PerformLayout();
+            this.tsPlugins.ResumeLayout(false);
+            this.tsPlugins.PerformLayout();
             this.splitMain.Panel1.ResumeLayout(false);
             this.splitMain.Panel2.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.splitMain)).EndInit();
@@ -2180,6 +2211,7 @@ namespace GameCatalog.App
         private System.Windows.Forms.ToolStripMenuItem mnuLoans;
         private System.Windows.Forms.ToolStripMenuItem mnuStats;
         private System.Windows.Forms.ToolStripMenuItem mnuHtmlEditor;
+        private System.Windows.Forms.ToolStripMenuItem mnuPlugins;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator9;
         private System.Windows.Forms.ToolStripMenuItem mnuPreferences;
         private System.Windows.Forms.ToolStripMenuItem mnuHelp;
@@ -2193,6 +2225,7 @@ namespace GameCatalog.App
         private System.Windows.Forms.ToolStripStatusLabel stHint;
         private System.Windows.Forms.ToolStripContainer toolStripContainer;
         private System.Windows.Forms.ToolStrip tsMain;
+        private System.Windows.Forms.ToolStrip tsPlugins;
         private System.Windows.Forms.ToolStripButton tbFileNew;
         private System.Windows.Forms.ToolStripButton tbFileOpen;
         private System.Windows.Forms.ToolStripButton tbFileSave;
@@ -2326,6 +2359,7 @@ namespace GameCatalog.App
         private GameCatalog.UI.Components.UIAction actLoans;
         private GameCatalog.UI.Components.UIAction actStats;
         private GameCatalog.UI.Components.UIAction actHtmlEditor;
+        private GameCatalog.UI.Components.UIAction actPlugins;
         private GameCatalog.UI.Components.UIAction actPreferences;
         private GameCatalog.UI.Components.UIAction actHelpIndex;
         private GameCatalog.UI.Components.UIAction actHelpAbout;

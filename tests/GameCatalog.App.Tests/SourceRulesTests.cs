@@ -21,7 +21,6 @@ public class SourceRulesTests
         "GameCatalog.App/Services/HtmlTemplates.cs",   // user-editable templates (stage 5)
         "GameCatalog.Storage/AmcXmlImporter.cs",       // stored media type values
         "GameCatalog.Scripting/ScriptSamples.cs",      // sample script bodies
-        "GameCatalog.Storage/CatalogTransfer.cs",      // removed from this list in Task 15
         "GameCatalog.UI/Components/IconThemeImageList.cs", // legacy theme names read from old prefs.json
     };
 

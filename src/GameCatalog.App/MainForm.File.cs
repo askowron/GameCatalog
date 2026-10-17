@@ -119,20 +119,7 @@ public partial class MainForm
         }
     }
 
-    // --- Import / export (built-in formats; plugin formats are merged in Task 15) ---
-
-    private IReadOnlyList<ExchangeEntry> ImportEntries() => new[]
-    {
-        new ExchangeEntry(L.Get("Exchange.ImportFolder"), AmcIcon.MovieImportFiles, ImportFromFolder),
-        new ExchangeEntry(L.Get("Exchange.ImportCsv"), AmcIcon.FileImport, ImportFromCsv),
-        new ExchangeEntry(L.Get("Exchange.ImportAmc"), AmcIcon.MovieImport, ImportFromAmc),
-    };
-
-    private IReadOnlyList<ExchangeEntry> ExportEntries() => new[]
-    {
-        new ExchangeEntry(L.Get("Exchange.ExportCsv"), AmcIcon.FileExport, ExportToCsv),
-        new ExchangeEntry(L.Get("Exchange.ExportHtml"), AmcIcon.Html, ExportToHtml),
-    };
+    // --- Import / export (formats come from the extension registry, see MainForm.Plugins.cs) ---
 
     private void ChooseExchange(string title, IReadOnlyList<ExchangeEntry> entries)
     {
@@ -151,41 +138,9 @@ public partial class MainForm
         }
     }
 
-    private void ImportFromFolder()
-    {
-        using var dialog = new FolderBrowserDialog { Description = L.Get("Folder.SelectGames"), UseDescriptionForTitle = true };
-        if (dialog.ShowDialog(this) != DialogResult.OK) return;
-        AddImported(() => CatalogTransfer.ImportFromFolder(dialog.SelectedPath, _session.Games.NextNumber(), _prefs.MediaPatterns));
-    }
-
-    private void ImportFromCsv()
-    {
-        using var dialog = new OpenFileDialog { Filter = L.Get("Filter.Csv") };
-        if (dialog.ShowDialog(this) != DialogResult.OK) return;
-        AddImported(() => CatalogTransfer.ImportCsv(dialog.FileName, _session.Games.NextNumber(), _prefs.CsvSeparator()));
-    }
-
-    private void ImportFromAmc()
-    {
-        using var dialog = new OpenFileDialog { Filter = L.Get("Filter.AmcXml") };
-        if (dialog.ShowDialog(this) != DialogResult.OK) return;
-        AddImported(() => AmcXmlImporter.Import(dialog.FileName, _session.Games.NextNumber()));
-    }
-
     /// <summary>Adds imported games as one undoable step.</summary>
-    private void AddImported(Func<List<Game>> import)
+    private void AddImported(IReadOnlyList<Game> games)
     {
-        List<Game> games;
-        try
-        {
-            games = import();
-        }
-        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or System.Xml.XmlException or FormatException)
-        {
-            AppLog.Error(ex, "Import");
-            MessageBox.Show(this, L.Get("Msg.ImportError", ex.Message), L.Get("Common.Error"), MessageBoxButtons.OK, MessageBoxIcon.Error);
-            return;
-        }
         foreach (var g in games) _session.Games.Add(g);
         _session.Undo.Push(() =>
         {
@@ -195,27 +150,5 @@ public partial class MainForm
         _session.MarkDirty();
         RefreshSuggestions();
         MessageBox.Show(this, L.Get("Msg.ImportedCount", games.Count), L.Get("Exchange.ImportTitle"));
-    }
-
-    private void ExportToCsv() => ExportTo(L.Get("Filter.Csv"), L.Get("File.DefaultCsv"),
-        path => CatalogTransfer.ExportCsv(_presenter.CurrentView(), path, _prefs.CsvSeparator()));
-
-    private void ExportToHtml() => ExportTo(L.Get("Filter.Html"), L.Get("File.DefaultHtml"),
-        path => CatalogTransfer.ExportHtml(_presenter.CurrentView(), path, L.Get("Export.HtmlTitle")));
-
-    private void ExportTo(string filter, string fileName, Action<string> export)
-    {
-        using var dialog = new SaveFileDialog { Filter = filter, FileName = fileName };
-        if (dialog.ShowDialog(this) != DialogResult.OK) return;
-        try
-        {
-            export(dialog.FileName);
-            SetHint(L.Get("Status.Exported", dialog.FileName));
-        }
-        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
-        {
-            AppLog.Error(ex, "Export");
-            MessageBox.Show(this, L.Get("Msg.ExportError", ex.Message), L.Get("Common.Error"), MessageBoxButtons.OK, MessageBoxIcon.Error);
-        }
     }
 }

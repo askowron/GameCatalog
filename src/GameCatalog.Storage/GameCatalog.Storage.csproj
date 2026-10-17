@@ -7,5 +7,6 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\GameCatalog.Core\GameCatalog.Core.csproj" />
+    <ProjectReference Include="..\GameCatalog.Plugins.Abstractions\GameCatalog.Plugins.Abstractions.csproj" />
   </ItemGroup>
 </Project>

@@ -275,6 +275,17 @@
       "btnHelp.Text": "Pomoc",
       "btnCancel.Text": "Anuluj",
       "btnSave.Text": "Zapisz"
+    },
+    "PluginsForm": {
+      "$this.Text": "Pluginy",
+      "colPluginName.Text": "Nazwa",
+      "colPluginVersion.Text": "Wersja",
+      "colPluginAuthor.Text": "Autor",
+      "colPluginState.Text": "Stan",
+      "colPluginError.Text": "Błąd",
+      "lblRestart.Text": "Zmiany zostaną zastosowane po ponownym uruchomieniu programu.",
+      "btnOk.Text": "OK",
+      "btnCancel.Text": "Anuluj"
     }
   },
   "strings": {
@@ -624,6 +635,15 @@
     "Prefs.Delimiter.Comma": "Przecinek (,)",
     "Prefs.Delimiter.Tab": "Tabulator",
     "Prefs.SearchUrlInvalid": "Adres musi zawierać {q} jako miejsce na zapytanie.",
-    "Prefs.SearchTitle": "Wyszukiwarka"
+    "Prefs.SearchTitle": "Wyszukiwarka",
+
+    "Action.Plugins": "Plugin&y…",
+    "Action.Plugins.Hint": "Pluginy",
+    "Plugin.State.Loaded": "Załadowany",
+    "Plugin.State.Disabled": "Wyłączony",
+    "Plugin.State.Incompatible": "Niezgodna wersja",
+    "Plugin.State.Failed": "Błąd",
+    "Plugin.Error": "Plugin „{0}” zgłosił błąd:\n{1}",
+    "Plugin.LoadFailed": "Nie załadowano pluginu „{0}”: {1}"
   }
 }

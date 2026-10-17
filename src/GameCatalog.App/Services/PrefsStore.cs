@@ -40,6 +40,8 @@ public sealed class PrefsStore
     public Dictionary<string, List<string>> CustomLists { get; set; } = new();
     /// <summary>Custom search sites (empty = defaults).</summary>
     public List<SearchSite> CustomSearchSites { get; set; } = new();
+    /// <summary>Ids of plugins switched off in Tools → Plugins.</summary>
+    public List<string> DisabledPlugins { get; set; } = new();
 
     public static List<SearchSite> DefaultSearchSites() => new()
     {

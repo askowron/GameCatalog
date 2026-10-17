@@ -55,14 +55,15 @@ public static class CatalogTransfer
         return result;
     }
 
-    public static void ExportHtml(IEnumerable<Game> games, string path, string title = "Katalog gier")
+    /// <summary>Simple HTML table; <paramref name="headers"/> are the 9 column captions in the UI language.</summary>
+    public static void ExportHtml(IEnumerable<Game> games, string path, string title, IReadOnlyList<string> headers)
     {
         var sb = new StringBuilder();
         sb.AppendLine("<!DOCTYPE html><html lang='pl'><head><meta charset='utf-8'>");
         sb.AppendLine($"<title>{System.Net.WebUtility.HtmlEncode(title)}</title>");
         sb.AppendLine("<style>body{font-family:Segoe UI,Arial}table{border-collapse:collapse;width:100%}th,td{border:1px solid #ccc;padding:6px}th{background:#eee}</style></head><body>");
         sb.AppendLine($"<h1>{System.Net.WebUtility.HtmlEncode(title)}</h1>");
-        sb.AppendLine("<table><tr><th>#</th><th>Tytuł</th><th>Developer</th><th>Rok</th><th>Gatunek</th><th>Platforma</th><th>Status</th><th>Ocena</th><th>Czas (h)</th></tr>");
+        sb.AppendLine("<table><tr>" + string.Concat(headers.Select(h => $"<th>{System.Net.WebUtility.HtmlEncode(h)}</th>")) + "</tr>");
         foreach (var g in games)
             sb.AppendLine($"<tr><td>{g.Number}</td><td>{System.Net.WebUtility.HtmlEncode(g.Title)}</td><td>{System.Net.WebUtility.HtmlEncode(g.Developer)}</td><td>{g.ReleaseYear}</td><td>{System.Net.WebUtility.HtmlEncode(g.Genre)}</td><td>{System.Net.WebUtility.HtmlEncode(g.Platform)}</td><td>{CatalogLabels.Current.Status(g.CompletionStatus)}</td><td>{GameFieldValues.Rating(g.UserRating)}</td><td>{g.PlaytimeHours}</td></tr>");
         sb.AppendLine("</table></body></html>");

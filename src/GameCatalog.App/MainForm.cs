@@ -49,6 +49,7 @@ public partial class MainForm : Form
             ? last
             : defaultPath;
         OpenCatalog(path, addSamplesIfNew: path == defaultPath);
+        LoadExtensions();
     }
 
     protected override void OnFormClosing(FormClosingEventArgs e)
@@ -154,6 +155,7 @@ public partial class MainForm : Form
         pictureWindow.ShowCover(_current?.CoverImage);
         stSelected.Text = _current is null ? "" : $"#{_current.Number} {_current.Title}";
         _ = RefreshHtmlAsync();
+        NotifyPanels();
     }
 
     private void OnGameModified(string tag)

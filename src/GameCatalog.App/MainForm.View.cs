@@ -251,19 +251,21 @@ public partial class MainForm
         mnuCtxColorTag.DropDownOpening += (_, _) => ReplaceDynamicItems(mnuCtxColorTag, ColorTagItems());
         tbImport.DropDownOpening += (_, _) => FillExchangeMenu(tbImport, ImportEntries());
         tbExport.DropDownOpening += (_, _) => FillExchangeMenu(tbExport, ExportEntries());
+        mnuGameGetInfo.DropDownOpening += (_, _) => ReplaceDynamicItems(mnuGameGetInfo, InfoProviderItems(), append: true);
         // Placeholders so the drop-down arrows open before the first rebuild.
         foreach (var menu in new ToolStripDropDownItem[] { mnuViewGroup, tbGroup, mnuViewGridFields, tbGridFields, mnuViewSelectHtml, mnuGameWeb, mnuCtxColorTag, tbImport, tbExport })
             if (menu.DropDownItems.Count == 0) menu.DropDownItems.Add(new ToolStripMenuItem("…") { Tag = DynamicItem });
     }
 
-    private static void ReplaceDynamicItems(ToolStripDropDownItem menu, IEnumerable<ToolStripItem> items)
+    /// <summary>Replaces the items built at runtime; they go before the static items, or after them with <paramref name="append"/>.</summary>
+    private static void ReplaceDynamicItems(ToolStripDropDownItem menu, IEnumerable<ToolStripItem> items, bool append = false)
     {
         foreach (var old in menu.DropDownItems.Cast<ToolStripItem>().Where(i => Equals(i.Tag, DynamicItem)).ToList())
         {
             menu.DropDownItems.Remove(old);
             old.Dispose();
         }
-        int index = 0;
+        int index = append ? menu.DropDownItems.Count : 0;
         foreach (var item in items)
         {
             item.Tag = DynamicItem;

@@ -37,6 +37,7 @@ public class DialogSmokeTests
         new object[] { (Func<Form>)(() => new StatsForm(new GameCatalog.Core.Catalog.GameList(), new HashSet<int>(), null, "c.gc")) },
         new object[] { (Func<Form>)(() => new PrefsForm(new PrefsStore())) },
         new object[] { (Func<Form>)(() => new ChoiceDialog("T", "P", new[] { "a" })) },
+        new object[] { (Func<Form>)(() => new PluginsForm(Array.Empty<GameCatalog.Plugins.Hosting.PluginDescriptor>(), Array.Empty<string>())) },
     };
 
     [Theory]
