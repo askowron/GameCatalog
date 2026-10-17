@@ -4,55 +4,96 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project
 
-GameCatalog is a Windows Forms desktop app (.NET 6) for cataloguing video games. It is a port of **Ant Movie Catalog (AMC)**, a Delphi movie cataloguer, adapted from movies to games. Many comments reference the original AMC Pascal units (`main.pas`, `fields.pas`, `getscript.pas`, `options.pas`, `export.pas`, `ConstValues.pas`). When you add a feature, check how AMC behaves first; most features are meant to match an AMC counterpart.
+GameCatalog is a Windows Forms desktop app (.NET 10) for cataloguing video games. It is a port of **Ant Movie Catalog (AMC)**, a Delphi movie cataloguer, adapted from movies to games, and it aims to mirror AMC visually and functionally. Comments often reference the original AMC Pascal units (`main.pas`, `fields.pas`, `getscript.pas`, `options.pas`, `languageselect.pas`, …). When you add a feature, check how AMC behaves first; most features are meant to match an AMC counterpart.
 
-The UI text, comments and identifiers in user-facing strings are in **Polish**. Keep new UI strings and code comments in Polish to match.
+**Language rules** (guarded by tests, see below):
+- Code comments and XML docs are in **English**.
+- User-visible text comes from `src/GameCatalog.App/Languages/*.json` (`pl` is the default language, `en` is the second one). Designer files hold the Polish text only as a fallback. Never hard-code UI text in `.cs` files.
 
 ## Commands
 
-The solution file is `GameCatalog.slnx` (the new XML solution format; it needs a recent SDK or VS 2022 17.13+/VS 18). The projects target `net6.0` / `net6.0-windows`.
-
 ```
 dotnet build GameCatalog.slnx
+dotnet test GameCatalog.slnx
+dotnet test GameCatalog.slnx --filter "FullyQualifiedName~DialogSmokeTests"
 dotnet run --project src/GameCatalog.App
 ```
 
-There are no test projects and no lint configuration.
+`GameCatalog.slnx` is the XML solution format (needs a recent SDK / VS 2022 17.13+). Projects target `net10.0` (no UI) or `net10.0-windows` (WinForms). Shared MSBuild settings (Nullable, ImplicitUsings, LangVersion, `Version` in `YY.M.D` form) live only in `Directory.Build.props`; `.csproj` files must not repeat them. `Directory.Build.targets` drops the WebView2 WPF assembly so the build stays warning-free.
 
 ## Architecture
 
-Four projects, with dependencies pointing toward Core:
+Dependencies (A → B: A depends on B):
 
-- **GameCatalog.Core**: has no dependencies. Contains the domain model (`Models/Game.cs`, `GameExtra`, `LoanRecord`, `CustomFieldDefinition`, `Enums`) and `Catalog/`:
-  - `GameCatalogModel`: the in-memory list of games, plus filter, sort (with an optional natural comparer) and group-by. It mirrors AMC's `TMovieList`. The UI works on this model; persistence is separate.
-  - `GameFields`: the master field table (Id, Tag, SqlTag, DisplayName, AMC origin). Tags are the canonical field identifiers used throughout: sorting, grouping, `GameFieldValues.Get(game, tag)`, script `SetField/GetField`, and custom fields (an unknown tag falls through to `Game.CustomValues`). SqlTags keep the old AMC names (e.g. `DIRECTOR` → Developer) so old AMC data can still be imported.
+```
+Localization                  → (none)
+Core                          → (none)
+Plugins.Abstractions          → Core, Localization
+Plugins.Abstractions.WinForms → Plugins.Abstractions
+Plugins.Hosting               → Plugins.Abstractions
+Storage                       → Core, Plugins.Abstractions
+Scripting                     → Core, Plugins.Abstractions
+UI                            → Core, Localization
+App                           → all of the above
+```
+
+- **GameCatalog.Core**: domain model (`Models/`: `Game`, `GameExtra`, `LoanRecord`, `CustomFieldDefinition`, `Enums`), `Catalog/GameList` (in-memory list with filter/sort/group, mirrors AMC `TMovieList`; `NaturalStringComparer`), and `Fields/`:
+  - `GameFields`: the master field table (Tag, SqlTag, label key, AMC origin). Tags are the canonical field identifiers used everywhere: sorting, grouping, `GameFieldValues.Get(game, tag)`, `GameFieldWriter.Set(game, tag, value)`, script `SetField/GetField`, custom fields (an unknown tag falls through to `Game.CustomValues`). SqlTags keep the old AMC names (e.g. `DIRECTOR` → Developer) so AMC data still imports.
+  - Core knows no language: labels are **keys** (`Field.Developer`, `Status.Backlog`) resolved through `CatalogLabels.Current` (`ICatalogLabels`), which the App points at the active language (`TranslatorCatalogLabels`).
+- **GameCatalog.Localization**: `LanguageManager` (`ITranslator`) loads `Languages/*.json` (`language` header, `forms` section per form/control, `strings` section), falls back to the default language and then to the key, never throws on broken files (logs instead), switches language live (`LanguageChanged`), merges plugin translations as `Plugin.<Id>.<Key>`, and exports a translation template.
 - **GameCatalog.Storage** (Microsoft.Data.Sqlite):
-  - `SqliteGameCatalogStore`: a catalog is a single SQLite file (`.gc` extension; `.db` is the legacy extension). The schema is created with `CREATE TABLE IF NOT EXISTS` in `Initialize()`, and there is no migration system. `SaveAll` writes the **whole model** in one transaction: it upserts every game and deletes rows whose numbers are gone. `LoadAll` loads everything. There is no incremental persistence.
-  - `CatalogTransfer`: CSV/HTML export, CSV import, and import from a folder.
-  - `AmcXmlImporter`: imports AMC `.xml` catalogs, mapping movie fields to game fields.
-- **GameCatalog.Scripting** (Roslyn `Microsoft.CodeAnalysis.CSharp.Scripting`): replaces AMC's IFPS (Pascal) scripts with C# scripts.
-  - Script files are `*.gcsx` in `Documents\GameCatalog\Scripts`. The metadata header is made of `// Name:`, `// Description:`, `// Version:`, `// Author:` and `// Site:` lines (`GameScript.Load`).
-  - Scripts run against the `ScriptGlobals.Api` (`ScriptApi`) object: HTTP fetches (a shared static `HttpClient`), HTML/regex/JSON helpers, `SetField(tag, value)`, `AddExtra`, `GetPicture`, and `PickList` (a UI callback).
-  - A script does not change the `Game` directly. `ScriptRunner.RunAsync` returns a `ScriptResult` (Fields/CustomFields/Extras/Cover), and the UI (`ScriptResultForm`) lets the user choose which values to apply.
-  - `ScriptSamples` writes the built-in sample scripts (Steam, Wikipedia PL, IGDB, GRY-Online) on first use. It does not overwrite existing files, so changing a sample constant does not update installed copies.
-- **GameCatalog.App** (WinForms):
-  - The UI is **built in code**; there are no `.Designer.cs` files or `.resx` forms.
-  - `Forms/MainForm.cs` (~2.4k lines) is the hub. It holds `_model`, `_store`, `_loans` and the `_dirty` flag, plus the menus, toolbar, list view, find bar, cover panel, undo stack and every file action.
-  - `Controls/GameFieldsControl` is the field editor. Edits are written back to the `Game` through `CommitAllFields()` before saving.
-  - `PrefsStore` holds the preferences, serialized as JSON to `Documents\GameCatalog\prefs.json`. Add new options as properties with defaults. They also need wiring into `PrefsForm` and the code in `MainForm` that applies prefs.
-  - `AmcIcons`: the `AmcIcon` enum order must match the icon strip order in `Resources/*.bmp` (original AMC toolbar themes, copied to the output directory). Do not reorder it.
-  - `HtmlTemplates`: game detail/preview templates expanded per game.
+  - `SqliteGameCatalogStore`: a catalog is one SQLite file (`.gc`; `.db` is the legacy extension). Schema created with `CREATE TABLE IF NOT EXISTS` in `Initialize()`; there is no migration system. `SaveAll` writes the whole model in one transaction and refuses duplicate game numbers; `LoadAll` loads everything.
+  - `CatalogTransfer` (CSV/HTML/folder) and `AmcXmlImporter`; `Exchange/` wraps them as `IGameImporter`/`IGameExporter` (`BuiltInExchange.Create`), the same contracts plugins use.
+- **GameCatalog.Scripting** (Roslyn): C# scripts (`*.gcsx` in `Documents\GameCatalog\Scripts`) replace AMC's Pascal scripts. Header lines `// Name:`, `// Description:`, `// Version:`, `// Author:`, `// Site:`. Scripts run against `ScriptApi`; `ScriptRunner.RunAsync` returns a `GameInfoResult` and the user picks what to apply in `ScriptResultForm`. `ScriptSamples` writes the built-in samples on first use and never overwrites existing files.
+- **GameCatalog.Plugins.\***: plugin contracts (`IPlugin`, `IPluginHost`, `IGameCatalog`, `IGameSelection`, `IGameImporter`/`IGameExporter`, `IGameInfoProvider`, `ICatalogCommand`; WinForms: `IGamePanelPlugin`, `IWinFormsPluginHost`) versioned by `PluginApi.Version`. `PluginManager` loads `Plugins\<Name>\<Name>.dll` into its own `AssemblyLoadContext` (contract assemblies are always shared with the app), checks `[GameCatalogPlugin(ApiVersion)]`, and reports disabled/incompatible/failed/duplicate plugins without stopping the others; a failing plugin's registrations are rolled back. `ExtensionRegistry` holds every extension with its owner (`builtin` for the app's own). `samples/GameCatalog.Plugin.Sample` demonstrates every extension point and its `README.md` explains how to build a plugin (Debug builds deploy it next to the app).
+- **GameCatalog.UI** (control library, Designer-friendly):
+  - `Components/`: `UIAction` + `ActionList` (AMC `TActionList`: one action drives menu items, toolbar buttons and shortcuts; `Update` runs on idle), `Localizer` (translates its container from the `forms` section on handle creation and on language change), `IconThemeImageList` (AMC toolbar icon themes from `Resources/*.bmp`; the `AmcIcon` enum order must match the strip order — never reorder it).
+  - `Controls/`: `GameListView`, `ThumbnailView`, `HtmlPreview` (WebView2 with a fallback message), `PictureToolWindow`, `FindBar`, `StatsCanvas`.
+  - `Frames/`: `GameFrame`, `GameCustomFrame`, `GameExtrasFrame`, `GameExtraFrame`, `GameAllFieldsFrame` (AMC frame*.pas); they `Bind(game)` and `Commit()` edits back.
+- **GameCatalog.App**: `Program` (logging, global error handlers, first-run language choice), `MainForm` split into partial files by menu (`MainForm.File/Game/View/Tools/Plugins.cs`), dialogs in `Forms/`, and `Services/`: `CatalogSession` (open/save/dirty/undo, commit-after-success), `UndoService`, `NumberingService`, `GameListPresenter`, `GameClipboard`, `CoverImages`, `PrefsStore` (JSON at `Documents\GameCatalog\prefs.json`), `AppPaths`, `HtmlTemplates`. Logs go to `Documents\GameCatalog\Logs`.
+
+## Designer conventions
+
+- Every Form/UserControl is a `partial class` with `X.Designer.cs`; layout lives in `InitializeComponent`, never in constructors. The constructor only calls `InitializeComponent()`, binds data and wires logic. Rows generated from data are the only controls created in code.
+- Every form and frame has a `components` container and a `Localizer` (`this.localizer = new Localizer(this.components); this.localizer.ContainerControl = this;`).
+- Control names are translation keys (`<control>.Text`, `.HeaderText`, `.ToolTip`, `.ToolTipText`; `$this.Text` is the caption) in the form's section of `pl.json`/`en.json`. Prefixes: `lbl`, `txt`, `cbx`, `chk`, `rb`, `num`, `dtp`, `btn`, `lv`/`lst`/`clb`, `col`, `grd`, `tlp`, `pnl`, `grp`, `split`, `ts`, `mnu`, `tab`, `act`. Never rename a control without renaming its keys.
+- Texts computed at runtime (captions with values, labels showing data) get **no** `forms` key — the Localizer would overwrite them; read them from `strings` instead (`AppServices.Languages.Get("<Form>.<Purpose>", args)`).
+- Main window commands are `UIAction`s bound to items through `actionList.SetAction`; their texts come from `Action.<Key>` / `Action.<Key>.Hint` strings.
+
+## Tests
+
+xUnit v2 projects in `tests/`: `Core`, `Storage`, `Localization`, `Plugins.Hosting` (installs the sample plugin and `tests/Fixtures/GameCatalog.Plugin.TestFixtures` into a temp folder), `Scripting`, `UI`, `App`. UI and App tests run sequentially (static `Localizer.Translator` / `AppServices`). Rule tests to keep green:
+- `LanguageFilesTests`: `en.json` has exactly the keys of `pl.json` — add every key to both files in the same commit.
+- `SourceRulesTests`: no Polish comments anywhere in `src/`, and no Polish string literals outside `.Designer.cs` files and the listed data files.
+- `DialogSmokeTests`: every dialog constructs and translates in both languages — add new dialogs to its list.
+
+UI is verified manually (both languages).
 
 ## Conventions and gotchas
 
-- **Ratings** are stored as ints from 0 to 100, with -1 meaning "none", and displayed as `/10.0` with a `0.0` format. `ReleaseYear`, `DiskCount` and `PlaytimeHours` use 0 to mean "unset".
-- **Game identity** is `Game.Number`, which is the SQLite primary key. Extras, loans and custom values reference it by number, so renumbering has to keep these references in sync.
-- `GameCatalogModel.ReplaceAll` takes a snapshot of its input before clearing. Call it with LINQ built over `model.Games`.
-- **Adding a field to `Game`** means updating several places that must stay in sync:
-  - `GameFields.All`
-  - `GameFieldValues.Get`
-  - The SQLite schema and the upsert/load code in `SqliteGameCatalogStore`. Existing databases won't gain new columns through `CREATE TABLE IF NOT EXISTS`, so add an `ALTER TABLE` path.
-  - The code that applies a `ScriptResult.Fields` tag to a `Game` property (`ScriptResultForm` / `MainForm`)
-  - `GameFieldsControl`
-  - `Sort`/`GroupBy` in `GameCatalogModel` (if the field is sortable or groupable)
-- `AssemblyVersion` is set by hand in each `.csproj`, using the `YY.M.D.build` format.
+- **Ratings** are ints 0–100, -1 = none, shown as `/10.0` with a `0.0` format. `ReleaseYear`, `DiskCount`, `PlaytimeHours` use 0 for "unset".
+- **Game identity** is `Game.Number` (the SQLite primary key). Extras, loans and custom values reference it by number; renumbering goes through `NumberingService` so references stay in sync.
+- `GameList.ReplaceAll` snapshots its input before clearing; LINQ over `games.Games` is fine.
+- Plugin and extension code runs behind isolation boundaries (`Guard` in `MainForm.Plugins.cs`): catch, log, show — never let it crash the app.
+- `AssemblyVersion` comes from `Version` in `Directory.Build.props` (`YY.M.D`).
+- **Adding a field to `Game`** touches several places that must stay in sync:
+  - `GameFields.All`, `GameFieldValues.Get`, `GameFieldWriter.Set`
+  - the SQLite schema and the upsert/load code in `SqliteGameCatalogStore` — existing databases do not gain columns through `CREATE TABLE IF NOT EXISTS`, so add an `ALTER TABLE` path (none exists yet)
+  - `GameFrame` (Designer editor + the `_editors` map) and `Field.<Tag>` in `pl.json`/`en.json`
+  - `GameList` sort/group if the field is sortable or groupable
+
+## Roadmap
+
+The port is staged; each stage has a spec in `docs/superpowers/specs/` and a plan in `docs/superpowers/plans/`:
+
+1. Foundation (done): .NET 10 projects, localization, Designer UI, plugins
+2. Fields, extras (DLC), pictures
+3. Search, expression filter, advanced sorting, group formats
+4. Import (the `import2` wizard)
+5. Export (HTML templates, CSV, XML, SQL, pictures)
+6. Scripts (properties, debugger, picktree, extras results)
+7. Program options and default values
+8. Printing and reports (FreeReport counterpart)
+9. Loans, statistics, numbering, catalog properties
+
+Out of scope for the whole port: AMCExchange, AMCReport.

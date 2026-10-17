@@ -176,4 +176,15 @@ public sealed class LanguageManagerTests : IDisposable
         m.SetLanguage("EN");
         Assert.Equal("en", m.CurrentLanguage);
     }
+
+    [Fact]
+    public void ExportTemplate_IncludesDefaultLanguageFormKeysNotCollectedLive()
+    {
+        var m = CreateDefault();
+        m.SetLanguage("en");
+        using var doc = JsonDocument.Parse(m.ExportTemplate(Array.Empty<FormKey>()));
+        var main = doc.RootElement.GetProperty("forms").GetProperty("MainForm");
+        Assert.Equal("&File", main.GetProperty("mnuFile.Text").GetString());
+        Assert.Equal("Katalog", main.GetProperty("$this.Text").GetString());
+    }
 }

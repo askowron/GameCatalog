@@ -286,6 +286,14 @@
       "lblRestart.Text": "Changes take effect after restarting the program.",
       "btnOk.Text": "OK",
       "btnCancel.Text": "Cancel"
+    },
+    "LanguageSelectForm": {
+      "$this.Text": "Language",
+      "lblChoose.Text": "Choose the interface language:",
+      "colLanguageName.Text": "Language",
+      "colLanguageAuthor.Text": "Author",
+      "btnOk.Text": "OK",
+      "btnCancel.Text": "Cancel"
     }
   },
   "strings": {
@@ -644,6 +652,12 @@
     "Plugin.State.Incompatible": "Incompatible version",
     "Plugin.State.Failed": "Failed",
     "Plugin.Error": "Plugin “{0}” reported an error:\n{1}",
-    "Plugin.LoadFailed": "Plugin “{0}” was not loaded: {1}"
+    "Plugin.LoadFailed": "Plugin “{0}” was not loaded: {1}",
+
+    "Action.Language": "&Language…",
+    "Action.Language.Hint": "Interface language",
+    "Action.HelpExportTranslation": "Export translation &template…",
+    "Action.HelpExportTranslation.Hint": "Save a language file for translators",
+    "Filter.Json": "JSON (*.json)|*.json"
   }
 }

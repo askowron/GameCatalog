@@ -286,6 +286,14 @@
       "lblRestart.Text": "Zmiany zostaną zastosowane po ponownym uruchomieniu programu.",
       "btnOk.Text": "OK",
       "btnCancel.Text": "Anuluj"
+    },
+    "LanguageSelectForm": {
+      "$this.Text": "Język",
+      "lblChoose.Text": "Wybierz język interfejsu:",
+      "colLanguageName.Text": "Język",
+      "colLanguageAuthor.Text": "Autor",
+      "btnOk.Text": "OK",
+      "btnCancel.Text": "Anuluj"
     }
   },
   "strings": {
@@ -644,6 +652,12 @@
     "Plugin.State.Incompatible": "Niezgodna wersja",
     "Plugin.State.Failed": "Błąd",
     "Plugin.Error": "Plugin „{0}” zgłosił błąd:\n{1}",
-    "Plugin.LoadFailed": "Nie załadowano pluginu „{0}”: {1}"
+    "Plugin.LoadFailed": "Nie załadowano pluginu „{0}”: {1}",
+
+    "Action.Language": "&Język…",
+    "Action.Language.Hint": "Język interfejsu",
+    "Action.HelpExportTranslation": "Eksportuj szablon &tłumaczenia…",
+    "Action.HelpExportTranslation.Hint": "Zapisz plik językowy do przetłumaczenia",
+    "Filter.Json": "JSON (*.json)|*.json"
   }
 }

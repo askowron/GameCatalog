@@ -108,6 +108,8 @@ namespace GameCatalog.App
             this.mnuHelpIndex = new System.Windows.Forms.ToolStripMenuItem();
             this.mnuHelpAbout = new System.Windows.Forms.ToolStripMenuItem();
             this.mnuHelpVersions = new System.Windows.Forms.ToolStripMenuItem();
+            this.mnuHelpExportTranslation = new System.Windows.Forms.ToolStripMenuItem();
+            this.mnuLanguage = new System.Windows.Forms.ToolStripMenuItem();
             this.findBar = new GameCatalog.UI.Controls.FindBar();
             this.statusMain = new System.Windows.Forms.StatusStrip();
             this.stCount = new System.Windows.Forms.ToolStripStatusLabel();
@@ -254,6 +256,8 @@ namespace GameCatalog.App
             this.actHelpIndex = new GameCatalog.UI.Components.UIAction(this.components);
             this.actHelpAbout = new GameCatalog.UI.Components.UIAction(this.components);
             this.actHelpVersions = new GameCatalog.UI.Components.UIAction(this.components);
+            this.actHelpExportTranslation = new GameCatalog.UI.Components.UIAction(this.components);
+            this.actLanguage = new GameCatalog.UI.Components.UIAction(this.components);
             this.menuMain.SuspendLayout();
             this.statusMain.SuspendLayout();
             this.toolStripContainer.ContentPanel.SuspendLayout();
@@ -739,6 +743,7 @@ namespace GameCatalog.App
             this.mnuHtmlEditor,
             this.mnuPlugins,
             this.toolStripSeparator9,
+            this.mnuLanguage,
             this.mnuPreferences});
             this.mnuTools.Name = "mnuTools";
             this.mnuTools.Size = new System.Drawing.Size(86, 20);
@@ -808,12 +813,19 @@ namespace GameCatalog.App
             this.mnuPreferences.Name = "mnuPreferences";
             this.mnuPreferences.Size = new System.Drawing.Size(240, 22);
             //
+            // mnuLanguage
+            //
+            this.actionList.SetAction(this.mnuLanguage, this.actLanguage);
+            this.mnuLanguage.Name = "mnuLanguage";
+            this.mnuLanguage.Size = new System.Drawing.Size(240, 22);
+            //
             // mnuHelp
             //
             this.mnuHelp.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.mnuHelpIndex,
             this.mnuHelpAbout,
-            this.mnuHelpVersions});
+            this.mnuHelpVersions,
+            this.mnuHelpExportTranslation});
             this.mnuHelp.Name = "mnuHelp";
             this.mnuHelp.Size = new System.Drawing.Size(54, 20);
             this.mnuHelp.Text = "P&omoc";
@@ -835,6 +847,12 @@ namespace GameCatalog.App
             this.actionList.SetAction(this.mnuHelpVersions, this.actHelpVersions);
             this.mnuHelpVersions.Name = "mnuHelpVersions";
             this.mnuHelpVersions.Size = new System.Drawing.Size(240, 22);
+            //
+            // mnuHelpExportTranslation
+            //
+            this.actionList.SetAction(this.mnuHelpExportTranslation, this.actHelpExportTranslation);
+            this.mnuHelpExportTranslation.Name = "mnuHelpExportTranslation";
+            this.mnuHelpExportTranslation.Size = new System.Drawing.Size(240, 22);
             //
             // findBar
             //
@@ -2087,6 +2105,22 @@ namespace GameCatalog.App
             this.actHelpVersions.ToolTipText = "Historia wersji";
             this.actHelpVersions.Execute += new System.EventHandler(this.actHelpVersions_Execute);
             //
+            // actHelpExportTranslation
+            //
+            this.actHelpExportTranslation.Icon = GameCatalog.UI.Icons.AmcIcon.Languages;
+            this.actHelpExportTranslation.Key = "HelpExportTranslation";
+            this.actHelpExportTranslation.Text = "Eksportuj szablon &tłumaczenia…";
+            this.actHelpExportTranslation.ToolTipText = "Zapisz plik językowy do przetłumaczenia";
+            this.actHelpExportTranslation.Execute += new System.EventHandler(this.actHelpExportTranslation_Execute);
+            //
+            // actLanguage
+            //
+            this.actLanguage.Icon = GameCatalog.UI.Icons.AmcIcon.Languages;
+            this.actLanguage.Key = "Language";
+            this.actLanguage.Text = "&Język…";
+            this.actLanguage.ToolTipText = "Język interfejsu";
+            this.actLanguage.Execute += new System.EventHandler(this.actLanguage_Execute);
+            //
             // MainForm
             //
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
@@ -2211,6 +2245,8 @@ namespace GameCatalog.App
         private System.Windows.Forms.ToolStripMenuItem mnuLoans;
         private System.Windows.Forms.ToolStripMenuItem mnuStats;
         private System.Windows.Forms.ToolStripMenuItem mnuHtmlEditor;
+        private System.Windows.Forms.ToolStripMenuItem mnuHelpExportTranslation;
+        private System.Windows.Forms.ToolStripMenuItem mnuLanguage;
         private System.Windows.Forms.ToolStripMenuItem mnuPlugins;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator9;
         private System.Windows.Forms.ToolStripMenuItem mnuPreferences;
@@ -2364,5 +2400,7 @@ namespace GameCatalog.App
         private GameCatalog.UI.Components.UIAction actHelpIndex;
         private GameCatalog.UI.Components.UIAction actHelpAbout;
         private GameCatalog.UI.Components.UIAction actHelpVersions;
+        private GameCatalog.UI.Components.UIAction actHelpExportTranslation;
+        private GameCatalog.UI.Components.UIAction actLanguage;
     }
 }

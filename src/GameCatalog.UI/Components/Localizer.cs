@@ -22,6 +22,17 @@ public sealed class Localizer : Component
     /// <summary>Active translator; set once by the application before the first form is created.</summary>
     public static ITranslator? Translator { get; set; }
 
+    /// <summary>Localizers of live windows; weak, so a window that is never disposed can still be collected.</summary>
+    private static readonly System.Runtime.CompilerServices.ConditionalWeakTable<Localizer, object> Live = new();
+
+    /// <summary>Translatable keys of every window currently alive (for the translation template).</summary>
+    public static IReadOnlyList<FormKey> CollectAllLiveKeys() =>
+        Live.Select(entry => entry.Key)
+            .Where(l => l._container is { IsDisposed: false })
+            .SelectMany(l => l.CollectKeys())
+            .Distinct()
+            .ToList();
+
     public Localizer() { }
 
     public Localizer(IContainer container) : this()
@@ -43,6 +54,7 @@ public sealed class Localizer : Component
                 _container.Disposed -= OnContainerDisposed;
             }
             _container = value;
+            if (_container is not null) Live.AddOrUpdate(this, this);
             if (_container is null) Unsubscribe();
             if (_container is null || (Site?.DesignMode ?? false)) return;
             _container.HandleCreated += OnHandleCreated;
@@ -188,7 +200,11 @@ public sealed class Localizer : Component
         _subscribedTo = null;
     }
 
-    private void OnContainerDisposed(object? sender, EventArgs e) => Unsubscribe();
+    private void OnContainerDisposed(object? sender, EventArgs e)
+    {
+        Unsubscribe();
+        Live.Remove(this);
+    }
 
     private void OnLanguageChanged(object? sender, EventArgs e)
     {

@@ -131,6 +131,14 @@ public sealed class LanguageManager : ITranslator
                 template.Forms[fk.Form] = section = new Dictionary<string, string>(StringComparer.Ordinal);
             section[fk.Key] = GetFormValue(fk.Form, fk.Key) ?? fk.DefaultText;
         }
+        // Keys known to the default language but not collected from live windows (closed dialogs).
+        foreach (var (form, keys) in _default.Forms)
+        {
+            if (!template.Forms.TryGetValue(form, out var section))
+                template.Forms[form] = section = new Dictionary<string, string>(StringComparer.Ordinal);
+            foreach (var (key, value) in keys)
+                section.TryAdd(key, GetFormValue(form, key) ?? value);
+        }
         foreach (var key in _default.Strings.Keys.Union(_current.Strings.Keys).OrderBy(k => k, StringComparer.Ordinal))
             template.Strings[key] = _current.Strings.TryGetValue(key, out var v) ? v : _default.Strings[key];
         return JsonSerializer.Serialize(template, WriteOptions);

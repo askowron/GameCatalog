@@ -5,6 +5,7 @@ using GameCatalog.Core.Fields;
 using GameCatalog.Core.Models;
 using GameCatalog.Plugins.Abstractions;
 using GameCatalog.Scripting;
+using GameCatalog.UI.Components;
 
 namespace GameCatalog.App;
 
@@ -203,5 +204,34 @@ public partial class MainForm
     {
         using var form = new VersionsForm();
         form.ShowDialog(this);
+    }
+
+    private void actLanguage_Execute(object? sender, EventArgs e)
+    {
+        using var form = new LanguageSelectForm(AppServices.Languages.Available, AppServices.Languages.CurrentLanguage);
+        if (form.ShowDialog(this) != DialogResult.OK || form.SelectedCode is not { } code) return;
+        AppServices.Languages.SetLanguage(code);   // every open window re-translates itself
+        _prefs.Language = code;
+        _prefs.Save();
+    }
+
+    private void actHelpExportTranslation_Execute(object? sender, EventArgs e)
+    {
+        using var dialog = new SaveFileDialog
+        {
+            Filter = L.Get("Filter.Json"),
+            FileName = AppServices.Languages.CurrentLanguage + ".json",
+        };
+        if (dialog.ShowDialog(this) != DialogResult.OK) return;
+        try
+        {
+            File.WriteAllText(dialog.FileName, AppServices.Languages.ExportTemplate(Localizer.CollectAllLiveKeys()));
+            SetHint(L.Get("Status.Exported", dialog.FileName));
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            AppLog.Error(ex, "Export translation template");
+            MessageBox.Show(this, L.Get("Msg.ExportError", ex.Message), L.Get("Common.Error"), MessageBoxButtons.OK, MessageBoxIcon.Error);
+        }
     }
 }

@@ -145,4 +145,21 @@ public class LocalizerTests
         f.Dispose();
         Assert.Equal(0, first.SubscriberCount);
     }
+
+    [Fact]
+    public void CollectAllLiveKeys_IncludesEveryLiveContainer()
+    {
+        Localizer.Translator = new FakeTranslator();
+        using var f = new SampleForm();
+        Assert.Contains(Localizer.CollectAllLiveKeys(), k => k.Form == "SampleForm" && k.Key == "lblHello.Text");
+    }
+
+    [Fact]
+    public void CollectAllLiveKeys_SkipsDisposedContainers()
+    {
+        Localizer.Translator = new FakeTranslator();
+        var f = new SampleForm();
+        f.Dispose();
+        Assert.DoesNotContain(Localizer.CollectAllLiveKeys(), k => k.Form == "SampleForm");
+    }
 }
