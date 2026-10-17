@@ -85,6 +85,54 @@ public class DialogSmokeTests
     }
 
     [Fact]
+    public void PrefsForm_SavingUnchangedKeepsEveryValue()
+    {
+        var prefs = new PrefsStore
+        {
+            Theme = GameCatalog.UI.Components.IconThemeImageList.Themes[^1].Id,
+            AutoNumbering = true, ShowGroupCount = false, HtmlTemplate = HtmlTemplates.Names[^1],
+            TitleFormat = "Localized", NaturalSort = false, ForceFullRefresh = true, ReopenLastFile = true,
+            FullRowSelect = false, ShowGridLines = true, ShowMenuIcons = false, CoverVisible = false,
+            ShowExtraCategory = false, CsvDelimiter = "TAB", BackupOnSave = true, MediaPatterns = "*.lnk",
+            MaxCoverWidth = 300, ScriptTimeoutSec = 30,
+            CustomLists = { ["Platform"] = new List<string> { "PC" } },
+            CustomSearchSites = { new SearchSite("S", "https://s/?q={q}") },
+        };
+        using var form = new PrefsForm(prefs);
+        _ = form.Handle;
+        var save = (Button)form.Controls.Find("btnSave", true).Single();
+        typeof(Button).GetMethod("OnClick", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)!
+            .Invoke(save, new object[] { EventArgs.Empty });
+
+        Assert.Equal(prefs.Theme, form.Theme);
+        Assert.Equal((true, false, prefs.HtmlTemplate, "Localized", false, true, true),
+            (form.AutoNumbering, form.ShowGroupCount, form.HtmlTemplate, form.TitleFormat, form.NaturalSort, form.ForceFullRefresh, form.ReopenLastFile));
+        Assert.Equal((false, true, false, false, false, "TAB", true),
+            (form.FullRowSelect, form.ShowGridLines, form.ShowMenuIcons, form.CoverVisible, form.ShowExtraCategory, form.CsvDelimiter, form.BackupOnSave));
+        Assert.Equal(("*.lnk", 300, 30), (form.MediaPatterns, form.MaxCoverWidth, form.ScriptTimeoutSec));
+        Assert.Equal(new[] { "PC" }, form.CustomLists["Platform"]);
+        Assert.Equal(prefs.CustomSearchSites, form.CustomSearchSites);
+    }
+
+    [Fact]
+    public void PrefsForm_TreeFollowsAmcHierarchyAndShowsOnePage()
+    {
+        AppServices.Languages.SetLanguage("en");
+        using var form = new PrefsForm(new PrefsStore())
+        {
+            StartPosition = FormStartPosition.Manual, Location = new Point(-10000, -10000), ShowInTaskbar = false,
+        };
+        form.Show();   // Control.Visible is only true for a shown window
+        var tree = (TreeView)form.Controls.Find("tvPages", true).Single();
+        Assert.Equal(9, tree.Nodes.Count);
+        Assert.Equal("General options", tree.Nodes[0].Text);
+        Assert.Equal(4, tree.Nodes[5].Nodes.Count);   // Game: lists, media import, picture import, web search
+        var pages = form.Controls.Find("pnlPages", true).Single().Controls.Cast<Control>().ToList();
+        Assert.Equal(15, pages.Count);
+        Assert.Equal(new[] { "pnlPageGeneral" }, pages.Where(p => p.Visible).Select(p => p.Name));
+    }
+
+    [Fact]
     public void NumberDialog_CallerCaptionSurvivesTranslation()
     {
         AppServices.Languages.SetLanguage("en");

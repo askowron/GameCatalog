@@ -13,7 +13,7 @@ public sealed class PrefsStore
     public string Language { get; set; } = "";
     public string Theme { get; set; } = IconThemeImageList.DefaultThemeId;
     public List<string> RecentFiles { get; set; } = new();
-    public string HtmlTemplate { get; set; } = "Szczegółowy";
+    public string HtmlTemplate { get; set; } = HtmlTemplates.Names[0];
     public bool ShowGroupCount { get; set; } = true;
     /// <summary>Automatic numbering (like the AMC option). When false, adding a game shows the "Choose game number" prompt.</summary>
     public bool AutoNumbering { get; set; } = false;
