@@ -1,0 +1,20 @@
+// Name: Wikipedia PL
+// Description: Fetches the description and thumbnail from Polish Wikipedia.
+// Version: 1.0
+// Author: GameCatalog
+// Site: https://pl.wikipedia.org
+var title = Api.Title.Trim().Replace(' ', '_');
+var url = "https://pl.wikipedia.org/api/rest_v1/page/summary/" + Api.UrlEncode(title);
+Api.Log("Pobieram: " + url);
+string json;
+try { json = await Api.GetPage(url); }
+catch { Api.ShowMessage("Nie znaleziono artykułu."); return; }
+var root = Api.JsonRoot(json, out var doc);
+string S(string p) => root.TryGetProperty(p, out var v) && v.ValueKind == JsonValueKind.String ? v.GetString()! : "";
+if (root.TryGetProperty("type", out var t) && t.GetString() == "disambiguation") { Api.ShowMessage("Strona ujednoznaczniająca — doprecyzuj tytuł."); return; }
+var desc = S("extract");
+if (desc.Length > 0) Api.SetField("Description", desc);
+if (root.TryGetProperty("content_urls", out var cu) && cu.TryGetProperty("desktop", out var d) && d.TryGetProperty("page", out var pg)) Api.SetField("URL", pg.GetString() ?? "");
+if (root.TryGetProperty("thumbnail", out var th) && th.TryGetProperty("source", out var src)) await Api.GetPicture(src.GetString() ?? "");
+doc.Dispose();
+Api.Log("Gotowe.");

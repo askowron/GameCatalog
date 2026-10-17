@@ -1,0 +1,215 @@
+// Name: Steam
+// Description: Fetches everything the Steam store offers: original and Polish title, developer, publisher, genres, release year, PEGI, game modes, audio and subtitle languages, size, Metacritic score, player reviews, tags, system requirements, DLC with pictures and a portrait cover.
+// Version: 2.0
+// Author: GameCatalog
+// Site: https://store.steampowered.com
+// Settings: store country and language of the texts (e.g. "US" / "english").
+string cc = "PL";
+string lang = "polish";
+int maxDlc = 40;
+
+var clock = System.Diagnostics.Stopwatch.StartNew();
+string S(JsonElement e, string p) => e.ValueKind == JsonValueKind.Object && e.TryGetProperty(p, out var v) && v.ValueKind == JsonValueKind.String ? v.GetString()! : "";
+List<string> SA(JsonElement e, string p, string sub) {
+    var list = new List<string>();
+    if (e.ValueKind == JsonValueKind.Object && e.TryGetProperty(p, out var v) && v.ValueKind == JsonValueKind.Array)
+        foreach (var x in v.EnumerateArray()) {
+            var s = sub == "" ? (x.ValueKind == JsonValueKind.String ? x.GetString() : "") : S(x, sub);
+            if (!string.IsNullOrWhiteSpace(s) && !list.Contains(s!.Trim())) list.Add(s!.Trim());
+        }
+    return list;
+}
+async Task<JsonElement?> AppDetails(string aid, string language, string filters) {
+    try {
+        var json = await Api.GetPage("https://store.steampowered.com/api/appdetails?appids=" + aid + "&cc=" + cc + "&l=" + language + (filters.Length > 0 ? "&filters=" + filters : ""));
+        var root = Api.JsonRoot(json, out var jdoc);
+        using (jdoc) {
+            if (root.TryGetProperty(aid, out var app) && app.TryGetProperty("success", out var ok) && ok.GetBoolean() && app.TryGetProperty("data", out var appData))
+                return appData.Clone();
+        }
+    } catch (Exception ex) { Api.Log("Steam: " + ex.Message); }
+    return null;
+}
+
+// 1. Find the game: reuse a Steam link stored in the record, otherwise search the store.
+string appid = Api.RegexFirst(Api.GetField("URL"), "store\\.steampowered\\.com/app/(\\d+)");
+if (appid.Length == 0) {
+    Api.Log("Szukam: " + Api.Title);
+    var suggest = await Api.GetPage("https://store.steampowered.com/search/suggest?term=" + Api.UrlEncode(Api.Title) + "&f=games&cc=" + cc + "&l=" + lang);
+    var pairs = Regex.Matches(suggest, "data-ds-appid=\"(\\d+)\".*?match_name\">([^<]+)<.*?match_price\">([^<]*)<", RegexOptions.Singleline)
+        .Select(m => (Id: m.Groups[1].Value, Name: Api.HtmlDecode(m.Groups[2].Value).Trim(), Extra: Api.HtmlDecode(m.Groups[3].Value).Trim()))
+        .GroupBy(x => x.Id).Select(g => g.First()).ToList();
+    if (pairs.Count == 0) { Api.ShowMessage("Nie znaleziono gry na Steam."); return; }
+    int pick = 0;
+    if (pairs.Count > 1) {
+        pick = Api.PickList("Wybierz grę (Steam):", pairs.Select(p => p.Extra.Length > 0 ? p.Name + " — " + p.Extra : p.Name).ToList());
+        if (pick < 0) return;
+    }
+    appid = pairs[pick].Id;
+}
+Api.Log("AppID: " + appid);
+string storeUrl = "https://store.steampowered.com/app/" + appid + "/";
+
+// 2. Store details in the chosen language, and the English name as the original title.
+var details = await AppDetails(appid, lang, "");
+if (details is null) { Api.ShowMessage("Brak szczegółów gry na Steam."); return; }
+var data = details.Value;
+var english = lang == "english" ? data : (await AppDetails(appid, "english", "basic") ?? data);
+string localName = S(data, "name");
+string originalName = S(english, "name");
+if (originalName.Length == 0) originalName = localName;
+Api.SetField("Title", originalName);
+if (localName.Length > 0 && !localName.Equals(originalName, StringComparison.OrdinalIgnoreCase)) Api.SetField("LocalizedTitle", localName);
+
+var devs = SA(data, "developers", "");
+var pubs = SA(data, "publishers", "");
+var genres = SA(data, "genres", "description");
+if (devs.Count > 0) Api.SetField("Developer", string.Join(", ", devs));
+if (pubs.Count > 0) Api.SetField("Publisher", string.Join(", ", pubs));
+if (genres.Count > 0) Api.SetField("Genre", string.Join(", ", genres));
+string releaseDate = data.TryGetProperty("release_date", out var rd) ? S(rd, "date") : "";
+var year = Regex.Match(releaseDate, "\\d{4}");
+if (year.Success) Api.SetField("ReleaseYear", year.Value);
+if (data.TryGetProperty("metacritic", out var mc) && mc.TryGetProperty("score", out var score) && score.ValueKind == JsonValueKind.Number)
+    Api.SetField("CriticRating", (score.GetInt32() / 10.0).ToString("0.0"));
+
+// PEGI (or the required age when PEGI is missing).
+string pegi = data.TryGetProperty("ratings", out var ratings) && ratings.ValueKind == JsonValueKind.Object && ratings.TryGetProperty("pegi", out var pg) ? S(pg, "rating") : "";
+if (pegi.Length == 0 && data.TryGetProperty("required_age", out var age)) pegi = age.ValueKind == JsonValueKind.Number ? age.GetInt32().ToString() : age.ToString();
+var pegiNum = Regex.Match(pegi, "\\d+");
+if (pegiNum.Success && pegiNum.Value != "0") Api.SetField("Pegi", "PEGI " + pegiNum.Value);
+
+// Platform: keep the record's platform when Steam supports it, otherwise the first supported one.
+var plats = new List<string>();
+if (data.TryGetProperty("platforms", out var pl)) {
+    if (pl.TryGetProperty("windows", out var onWindows) && onWindows.GetBoolean()) plats.Add("PC");
+    if (pl.TryGetProperty("mac", out var onMac) && onMac.GetBoolean()) plats.Add("Mac");
+    if (pl.TryGetProperty("linux", out var onLinux) && onLinux.GetBoolean()) plats.Add("Linux");
+}
+if (plats.Count > 0 && !plats.Contains(Api.GetField("Platform"))) Api.SetField("Platform", plats[0]);
+
+// Game mode from the store categories.
+var catIds = new HashSet<int>();
+var catNames = new List<string>();
+if (data.TryGetProperty("categories", out var cats) && cats.ValueKind == JsonValueKind.Array)
+    foreach (var c in cats.EnumerateArray()) {
+        if (c.TryGetProperty("id", out var cid) && cid.ValueKind == JsonValueKind.Number) catIds.Add(cid.GetInt32());
+        var cn = S(c, "description");
+        if (cn.Length > 0) catNames.Add(cn);
+    }
+bool single = catIds.Contains(2);
+bool multi = catIds.Overlaps(new[] { 1, 27, 36, 47, 49 });
+bool coop = catIds.Overlaps(new[] { 9, 38, 39, 48 });
+string mode = catIds.Contains(20) ? "MMO" : single && (multi || coop) ? "Single + Multi" : coop ? "Co-op" : multi ? "Multiplayer" : single ? "Single-player" : "";
+if (mode.Length > 0) Api.SetField("GameMode", mode);
+
+// Languages: "*" marks full audio; every listed language has interface and subtitles.
+string langsHtml = S(data, "supported_languages");
+var audio = new List<string>();
+var subs = new List<string>();
+foreach (var part in Regex.Split(Regex.Replace(langsHtml, "<br>.*$", "", RegexOptions.Singleline), ","))
+{
+    bool voiced = part.Contains("*");
+    var name = Api.HtmlDecode(Api.HtmlRemoveTags(part)).Replace("*", "").Trim().ToLowerInvariant();
+    if (name.Length == 0) continue;
+    subs.Add(name);
+    if (voiced) audio.Add(name);
+}
+if (audio.Count > 0) Api.SetField("AudioLanguages", string.Join(", ", audio));
+if (subs.Count > 0) Api.SetField("Subtitles", string.Join(", ", subs));
+
+// Requirements: disk size and the full text for the comments.
+string reqMin = data.TryGetProperty("pc_requirements", out var req) && req.ValueKind == JsonValueKind.Object ? S(req, "minimum") : "";
+string reqRec = req.ValueKind == JsonValueKind.Object ? S(req, "recommended") : "";
+var size = Regex.Match(Api.HtmlToText(reqRec.Length > 0 ? reqRec : reqMin), "(?:Miejsce na dysku|Storage|Hard Drive|Disk Space|Hard Disk)[^\\d\\n]{0,20}(\\d+(?:[.,]\\d+)?)\\s*(?:SSD\\s*|HDD\\s*)?(GB|MB)", RegexOptions.IgnoreCase);
+if (size.Success) {
+    double gb = double.Parse(size.Groups[1].Value.Replace(',', '.'), System.Globalization.CultureInfo.InvariantCulture);
+    if (size.Groups[2].Value.ToUpperInvariant() == "MB") gb = Math.Round(gb / 1024, 1);
+    Api.SetField("SizeGb", gb.ToString("0.#"));
+}
+
+// Description: the short summary, then the longer store text (some games keep it only in pictures).
+string shortDesc = Api.HtmlToText(S(data, "short_description"));
+string about = new[] { Api.HtmlToText(S(data, "about_the_game")), Api.HtmlToText(S(data, "detailed_description")) }
+    .OrderByDescending(t => t.Length).First();
+string description = shortDesc;
+if (about.Length > 0 && !shortDesc.Contains(about)) description = about.StartsWith(shortDesc) ? about : (shortDesc.Length > 0 ? shortDesc + "\n\n" : "") + about;
+if (description.Length > 0) Api.SetField("Description", description);
+
+Api.SetField("URL", storeUrl);
+Api.SetField("Store", "Steam");
+Api.SetField("MediaType", "Cyfrowa");
+
+// 3. Player reviews and user tags (store page behind the age check).
+string reviews = "";
+try {
+    var rj = await Api.GetPage("https://store.steampowered.com/appreviews/" + appid + "?json=1&language=all&purchase_type=all&num_per_page=0");
+    var rr = Api.JsonRoot(rj, out var rdoc);
+    if (rr.TryGetProperty("query_summary", out var qs)) {
+        int pos = qs.TryGetProperty("total_positive", out var tp) ? tp.GetInt32() : 0;
+        int total = qs.TryGetProperty("total_reviews", out var tt) ? tt.GetInt32() : 0;
+        if (total > 0) reviews = S(qs, "review_score_desc") + " — " + (100.0 * pos / total).ToString("0") + "% z " + total.ToString("N0") + " recenzji";
+    }
+    rdoc.Dispose();
+} catch (Exception ex) { Api.Log("Recenzje: " + ex.Message); }
+var tags = new List<string>();
+try {
+    Api.SetCookie("https://store.steampowered.com", "birthtime", "0");
+    Api.SetCookie("https://store.steampowered.com", "lastagecheckage", "1-0-1900");
+    Api.SetCookie("https://store.steampowered.com", "wants_mature_content", "1");
+    var page = await Api.GetPage(storeUrl + "?l=" + lang + "&cc=" + cc);
+    var tagJson = Api.RegexFirst(page, "InitAppTagModal\\(\\s*\\d+,\\s*(\\[.*?\\])\\s*,");
+    if (tagJson.Length > 0) {
+        var tr = Api.JsonRoot(tagJson, out var tdoc);
+        foreach (var t in tr.EnumerateArray()) { var n = S(t, "name"); if (n.Length > 0) tags.Add(n); }
+        tdoc.Dispose();
+    }
+} catch (Exception ex) { Api.Log("Tagi: " + ex.Message); }
+
+// 4. Everything without a dedicated field goes to the comments.
+var info = new List<string>();
+info.Add("Steam AppID: " + appid);
+if (releaseDate.Length > 0) info.Add("Data wydania: " + releaseDate);
+if (reviews.Length > 0) info.Add("Opinie graczy: " + reviews);
+if (data.TryGetProperty("metacritic", out var mc2)) info.Add("Metacritic: " + (mc2.TryGetProperty("score", out var s2) ? s2.ToString() : "") + " " + S(mc2, "url"));
+if (data.TryGetProperty("price_overview", out var price)) info.Add("Cena: " + S(price, "final_formatted"));
+else if (data.TryGetProperty("is_free", out var free) && free.ValueKind == JsonValueKind.True) info.Add("Cena: darmowa");
+if (data.TryGetProperty("achievements", out var ach) && ach.TryGetProperty("total", out var at)) info.Add("Osiągnięcia: " + at.GetInt32());
+if (data.TryGetProperty("recommendations", out var rec) && rec.TryGetProperty("total", out var rt)) info.Add("Polecenia: " + rt.GetInt32().ToString("N0"));
+if (S(data, "website").Length > 0) info.Add("Strona gry: " + S(data, "website"));
+if (plats.Count > 0) info.Add("Systemy: " + string.Join(", ", plats));
+if (S(data, "controller_support").Length > 0) info.Add("Kontroler: " + S(data, "controller_support"));
+if (tags.Count > 0) info.Add("Tagi: " + string.Join(", ", tags));
+if (catNames.Count > 0) info.Add("Funkcje: " + string.Join(", ", catNames));
+if (data.TryGetProperty("content_descriptors", out var cd) && S(cd, "notes").Length > 0) info.Add("Treści dla dorosłych: " + S(cd, "notes").Trim());
+if (reqMin.Length > 0) info.Add("\n" + Api.HtmlToText(reqMin));
+if (reqRec.Length > 0) info.Add("\n" + Api.HtmlToText(reqRec));
+Api.SetField("Comments", string.Join("\n", info));
+
+// 5. Cover: the portrait library capsule, the store header as a fallback.
+if (!await Api.GetPicture("https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/" + appid + "/library_600x900_2x.jpg"))
+    await Api.GetPicture(S(data, "header_image"));
+
+// 6. DLC as extras, each with its description and picture (stops early to stay within the script timeout).
+var dlcIds = data.TryGetProperty("dlc", out var dl) && dl.ValueKind == JsonValueKind.Array
+    ? dl.EnumerateArray().Select(x => x.ToString()).ToList() : new List<string>();
+if (dlcIds.Count > 0) Api.Log("DLC: " + dlcIds.Count);
+int added = 0;
+foreach (var id in dlcIds.Take(maxDlc)) {
+    if (clock.Elapsed.TotalSeconds > 35) { Api.Log("Pominięto część DLC (limit czasu)."); break; }
+    var dlc = await AppDetails(id, lang, "basic");
+    if (dlc is null) continue;
+    var dlcData = dlc.Value;
+    string title = S(dlcData, "name");
+    string kind = S(dlcData, "type");
+    string lower = title.ToLowerInvariant();
+    string category = kind == "music" || lower.Contains("soundtrack") ? "Ścieżka dźwiękowa"
+        : lower.Contains("season pass") || lower.Contains("przepustka") ? "Przepustka sezonowa"
+        : lower.Contains("expansion") || lower.Contains("rozszerzenie") ? "Rozszerzenie"
+        : lower.Contains("skin") || lower.Contains("cosmetic") || lower.Contains("pack") ? "Kosmetyczne" : "DLC";
+    var extra = Api.AddExtra(title, category, Api.HtmlToText(S(dlcData, "short_description")), "https://store.steampowered.com/app/" + id + "/");
+    await Api.GetExtraPicture(extra, S(dlcData, "header_image"));
+    added++;
+}
+if (dlcIds.Count > maxDlc) Api.Log("Pobrano " + maxDlc + " z " + dlcIds.Count + " DLC (zmień maxDlc na początku skryptu).");
+Api.Log("Gotowe: " + originalName + (added > 0 ? ", DLC: " + added : ""));

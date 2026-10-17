@@ -106,6 +106,8 @@ public partial class MainForm
         foreach (var (tag, value) in form.CheckedFields) GameFieldWriter.Set(game, tag, value);
         foreach (var extra in result.Extras)
         {
+            // Running a script again must not duplicate the extras it already added.
+            if (game.Extras.Any(e => e.Title.Equals(extra.Title, StringComparison.OrdinalIgnoreCase))) continue;
             extra.GameNumber = game.Number;
             game.Extras.Add(extra);
         }

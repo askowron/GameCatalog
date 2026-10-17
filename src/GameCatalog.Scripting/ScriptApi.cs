@@ -13,11 +13,12 @@ namespace GameCatalog.Scripting;
 /// </summary>
 public sealed class ScriptApi
 {
+    private static readonly CookieContainer Cookies = new();
     private static readonly HttpClient Http = new(new HttpClientHandler
     {
         AutomaticDecompression = DecompressionMethods.All,
         UseCookies = true,
-        CookieContainer = new CookieContainer(),
+        CookieContainer = Cookies,
     });
 
     static ScriptApi()
@@ -62,9 +63,18 @@ public sealed class ScriptApi
     public void SetRequestHeader(string name, string value) => _headers[name] = value;
     public void ClearRequestHeaders() => _headers.Clear();
 
-    public async Task<string> GetPage(string url, string? referer = null)
+    /// <summary>Cookie sent with every request to the site (e.g. the Steam age check).</summary>
+    public void SetCookie(string url, string name, string value) =>
+        Cookies.Add(new Uri(url), new Cookie(name, value, "/"));
+
+    /// <param name="rawUrl">Send the address exactly as given, without .NET re-escaping it
+    /// (needed for old ASP search pages that take JavaScript escape() codes such as <c>%u017A</c>).</param>
+    public async Task<string> GetPage(string url, string? referer = null, bool rawUrl = false)
     {
-        using var req = new HttpRequestMessage(HttpMethod.Get, url);
+        var uri = rawUrl
+            ? new Uri(url, new UriCreationOptions { DangerousDisablePathAndQueryCanonicalization = true })
+            : new Uri(url);
+        using var req = new HttpRequestMessage(HttpMethod.Get, uri);
         if (!string.IsNullOrEmpty(referer)) req.Headers.Referrer = new Uri(referer);
         using var res = await SendAsync(req).ConfigureAwait(false);
         res.EnsureSuccessStatusCode();
@@ -104,6 +114,19 @@ public sealed class ScriptApi
     public string HtmlRemoveTags(string s) => Regex.Replace(s ?? "", "<.*?>", "");
     public string UrlEncode(string s) => Uri.EscapeDataString(s ?? "");
     public string UrlDecode(string s) => Uri.UnescapeDataString(s ?? "");
+
+    /// <summary>Readable text from HTML: block tags become line breaks, entities are decoded, blank runs collapse.</summary>
+    public string HtmlToText(string html)
+    {
+        var s = Regex.Replace(html ?? "", @"<(script|style)[^>]*>.*?</\1>", "", RegexOptions.Singleline | RegexOptions.IgnoreCase);
+        s = Regex.Replace(s, @"<br\s*/?>", "\n", RegexOptions.IgnoreCase);
+        s = Regex.Replace(s, @"<li[^>]*>", "\n- ", RegexOptions.IgnoreCase);
+        s = Regex.Replace(s, @"</?(p|div|h[1-6]|ul|ol|tr|table)[^>]*>", "\n", RegexOptions.IgnoreCase);
+        s = WebUtility.HtmlDecode(Regex.Replace(s, "<.*?>", ""));
+        s = Regex.Replace(s, @"[ \t\u00A0]+", " ");
+        s = Regex.Replace(s, @" *\n *", "\n");
+        return Regex.Replace(s, @"\n{3,}", "\n\n").Trim();
+    }
 
     public string RegexFirst(string input, string pattern)
     {
@@ -148,16 +171,38 @@ public sealed class ScriptApi
         : _game.CustomValues.TryGetValue(tag, out var g) ? g : "";
 
     // ---- Extras (like AddExtra) ----
-    public void AddExtra(string title, string category = "", string description = "")
+    /// <summary>Adds an extra/DLC; returns it so the script can attach a picture, or null for a blank title.</summary>
+    public GameExtra? AddExtra(string title, string category = "", string description = "", string url = "")
     {
-        if (string.IsNullOrWhiteSpace(title)) return;
-        Extras.Add(new GameExtra
+        if (string.IsNullOrWhiteSpace(title)) return null;
+        var extra = new GameExtra
         {
             Title = title.Trim(),
             Category = category?.Trim() ?? "",
             Description = description?.Trim() ?? "",
+            Url = url?.Trim() ?? "",
             CreatedBy = "script",
-        });
+        };
+        Extras.Add(extra);
+        return extra;
+    }
+
+    /// <summary>Downloads an image as the picture of an extra (AMC: extra picture import).</summary>
+    public async Task<bool> GetExtraPicture(GameExtra? extra, string url)
+    {
+        if (extra is null || string.IsNullOrWhiteSpace(url)) return false;
+        try
+        {
+            var bytes = await Http.GetByteArrayAsync(url).ConfigureAwait(false);
+            if (bytes.Length < 100) return false;
+            extra.CoverImage = bytes;
+            return true;
+        }
+        catch (Exception ex)
+        {
+            Log("Extra picture download error: " + ex.Message);
+            return false;
+        }
     }
 
     /// <summary>Parses JSON and returns the root element (the document must be disposed by the caller).</summary>

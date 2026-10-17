@@ -1,0 +1,259 @@
+// Name: GRY-Online.pl
+// Description: Fetches everything the GRY-Online.pl encyclopedia offers: original and Polish title, developer, publisher, genres, tags, platforms, release year, PEGI, game mode, engine, Polish language version, ratings, average completion time, full description, voice cast, system requirements, expansions and DLC with pictures, and the cover.
+// Version: 2.0
+// Author: GameCatalog
+// Site: https://www.gry-online.pl
+const string Site = "https://www.gry-online.pl";
+
+string S(JsonElement e, string p) => e.ValueKind == JsonValueKind.Object && e.TryGetProperty(p, out var v) && v.ValueKind == JsonValueKind.String ? v.GetString()! : "";
+string[] SA(JsonElement e, string p) => e.ValueKind == JsonValueKind.Object && e.TryGetProperty(p, out var v) && v.ValueKind == JsonValueKind.Array
+    ? v.EnumerateArray().Where(x => x.ValueKind == JsonValueKind.String).Select(x => x.GetString()!.Trim()).Where(x => x.Length > 0).Distinct().ToArray() : Array.Empty<string>();
+string ON(JsonElement e, string p) => e.ValueKind == JsonValueKind.Object && e.TryGetProperty(p, out var v) && v.ValueKind == JsonValueKind.Object ? S(v, "name") : "";
+string Text(string html) => Api.HtmlToText(html ?? "");
+string Abs(string url) => url.StartsWith("http") ? url : Site + url;
+string MapPlatform(string p) {
+    p = (p ?? "").ToLowerInvariant();
+    if (p.Contains("pc") || p.Contains("windows")) return "PC";
+    if (p.Contains("playstation 5")) return "PS5";
+    if (p.Contains("playstation 4")) return "PS4";
+    if (p.Contains("xbox series")) return "Xbox Series";
+    if (p.Contains("xbox one")) return "Xbox One";
+    if (p.Contains("switch 2")) return "Switch 2";
+    if (p.Contains("switch")) return "Switch";
+    if (p.Contains("steam deck")) return "Steam Deck";
+    if (p.Contains("ios") || p.Contains("android")) return "Mobile";
+    if (p.Contains("playstation") || p.Contains("xbox") || p.Contains("wii") || p.Contains("3ds") || p.Contains("nintendo")) return "Retro";
+    return "";
+}
+string Slug(string s) => Regex.Replace((s ?? "").ToLowerInvariant(), "[^a-z0-9]+", "-").Trim('-');
+// The site's quick search expects JavaScript escape() encoding (%uXXXX for Polish letters).
+string JsEscape(string s) {
+    var sb = new System.Text.StringBuilder();
+    foreach (char ch in s ?? "") {
+        if ((ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z') || (ch >= '0' && ch <= '9') || "@*_+-./".IndexOf(ch) >= 0) sb.Append(ch);
+        else if (ch < 256) sb.Append('%').Append(((int)ch).ToString("X2"));
+        else sb.Append("%u").Append(((int)ch).ToString("X4"));
+    }
+    return sb.ToString();
+}
+// "Polskie napisy" -> "polski"; "Angielskie dialogi" -> "angielski".
+string LanguageName(string adjective) {
+    var a = adjective.ToLowerInvariant();
+    if (a.EndsWith("ie")) return a[..^1];
+    if (a.EndsWith("a")) return a[..^1] + "i";
+    return a;
+}
+
+// 1. Find the game: reuse a GRY-Online link stored in the record, otherwise search the site.
+string gameUrl = Api.RegexFirst(Api.GetField("URL"), "(https?://www\\.gry-online\\.pl/gry/[a-z0-9\\-]+/z[a-z0-9]+)");
+if (gameUrl.Length == 0) {
+    var found = new List<(string Url, string Name)>();
+    var queries = new List<string> { Api.Title };
+    if (Api.Title.Contains(':')) queries.Add(Api.Title.Split(':')[0]);
+    var local = Api.GetField("LocalizedTitle");
+    if (local.Length > 0 && local != Api.Title) queries.Insert(1, local);
+    foreach (var q in queries) {
+        Api.Log("Szukam: " + q);
+        try {
+            var xml = await Api.GetPage(Site + "/ajax/xml/gry.asp?search=" + JsEscape(q.Trim()), null, rawUrl: true);
+            foreach (Match row in Regex.Matches(xml, "<row url=\"([^\"]+)\" name=\"([^\"]+)\"")) {
+                var url = row.Groups[1].Value;
+                if (!Regex.IsMatch(url, "/gry/[a-z0-9\\-]+/z[a-z0-9]+$") || found.Any(f => f.Url == url)) continue;
+                found.Add((url, Api.HtmlDecode(row.Groups[2].Value)));
+            }
+        } catch (Exception ex) { Api.Log("Wyszukiwarka GRY-Online: " + ex.Message); }
+        if (found.Count > 0) break;
+    }
+    if (found.Count == 0) {
+        Api.Log("Szukam przez wyszukiwarkę internetową...");
+        foreach (var x in await Api.SearchLinks("site:gry-online.pl/gry " + Api.Title, "gry-online.pl")) {
+            var path = Api.RegexFirst(x.Url, "gry-online\\.pl(/gry/[a-z0-9\\-]+/z[a-z0-9]+)");
+            if (path.Length == 0 || found.Any(f => f.Url == Site + path)) continue;
+            found.Add((Site + path, Regex.Replace(x.Name, "\\s*-\\s*(Wielka Encyklopedia|GRY-?Online).*$", "", RegexOptions.IgnoreCase)));
+        }
+    }
+    if (found.Count == 0) { Api.ShowMessage("Nie znaleziono gry na GRY-Online.pl."); return; }
+    int pick = 0;
+    if (found.Count > 1) {
+        pick = Api.PickList("Wybierz grę (GRY-Online.pl):", found.Select(x => x.Name).ToList());
+        if (pick < 0) return;
+    }
+    gameUrl = found[pick].Url;
+}
+Api.Log("Pobieram: " + gameUrl);
+string page;
+try { page = await Api.GetPage(gameUrl); }
+catch { Api.ShowMessage("Nie udało się pobrać strony gry."); return; }
+
+// 2. Structured data (JSON-LD).
+string ld = Api.ScriptJson(page, "VideoGame");
+if (ld.Length == 0) { Api.ShowMessage("Brak danych gry na stronie."); return; }
+var ldRoot = Api.JsonRoot(ld, out var ldDoc);
+var game = ldRoot.TryGetProperty("about", out var about) ? about : ldRoot;
+
+// Titles: alternateName is the original title only when it matches the address; otherwise it is a nickname (e.g. "CP 2077").
+string plTitle = S(game, "name");
+string altTitle = S(game, "alternateName");
+string urlSlug = Api.RegexFirst(gameUrl, "/gry/([a-z0-9\\-]+)/");
+string nickname = "";
+if (altTitle.Length > 0 && Slug(altTitle).Length > 0 && urlSlug.StartsWith(Slug(altTitle))) {
+    Api.SetField("Title", altTitle);
+    if (plTitle.Length > 0 && plTitle != altTitle) Api.SetField("LocalizedTitle", plTitle);
+} else {
+    if (plTitle.Length > 0) Api.SetField("Title", plTitle);
+    nickname = altTitle;
+}
+
+string developer = ON(game, "author");
+string publisher = ON(game, "publisher");
+if (developer.Length > 0) Api.SetField("Developer", developer);
+if (publisher.Length > 0) Api.SetField("Publisher", publisher);
+var genres = SA(game, "genre");
+if (genres.Length > 0) Api.SetField("Genre", string.Join(", ", genres));
+
+// Platforms: keep the record's platform when the game is on it, otherwise the first one.
+var platformNames = SA(game, "gamePlatform");
+var platforms = platformNames.Select(MapPlatform).Where(x => x.Length > 0).Distinct().ToList();
+string platform = platforms.Contains(Api.GetField("Platform")) ? Api.GetField("Platform") : platforms.FirstOrDefault() ?? "";
+if (platform.Length > 0 && platform != Api.GetField("Platform")) Api.SetField("Platform", platform);
+
+// Tags under the title (genre, perspective, setting, modes, subscriptions).
+var tags = Regex.Matches(Api.RegexFirst(page, "<p class=\"[^\"]*S016-box-tags[^\"]*\">(.*?)</p>"),"<a[^>]*>([^<]+)</a>").Select(m => Api.HtmlDecode(m.Groups[1].Value).Trim()).ToList();
+if (tags.Contains("Polskie gry")) Api.SetField("Country", "Polska");
+
+// Game mode from playMode and the tags.
+string playMode = S(game, "playMode");
+string tagText = string.Join("|", tags).ToLowerInvariant();
+bool single = playMode.EndsWith("SinglePlayer") || tagText.Contains("singleplayer");
+bool multi = playMode.EndsWith("MultiPlayer") || tagText.Contains("multiplayer") || tagText.Contains("pvp");
+bool coop = playMode.EndsWith("CoOp") || tagText.Contains("kooperacja") || tagText.Contains("co-op");
+string mode = tagText.Contains("mmo") ? "MMO" : single && (multi || coop) ? "Single + Multi" : coop ? "Co-op" : multi ? "Multiplayer" : single ? "Single-player" : "";
+if (mode.Length > 0) Api.SetField("GameMode", mode);
+
+// Release year.
+string released = Api.RegexFirst(page, "Data wydania:\\s*<b>([^<]+)</b>");
+var year = Regex.Match(released, "\\d{4}");
+if (year.Success) Api.SetField("ReleaseYear", year.Value);
+
+// Ratings: GRYOnline, players, Steam, OpenCritic (all 0-10). OpenCritic is used as the critic rating when present.
+var ratings = Regex.Matches(page, "oce-rate\">([\\d.]+)</div></div>\\s*(?:<div>\\s*)?<p class=\"mb0\">([^<]+)</p>")
+    .Select(m => (Source: m.Groups[2].Value.Trim(), Score: m.Groups[1].Value)).GroupBy(r => r.Source).Select(g => g.First()).ToList();
+string critic = ratings.Where(r => r.Source == "OpenCritic").Select(r => r.Score).FirstOrDefault()
+    ?? ratings.Where(r => r.Source == "GRYOnline").Select(r => r.Score).FirstOrDefault() ?? "";
+if (critic.Length == 0 && game.TryGetProperty("aggregateRating", out var ar) && ar.TryGetProperty("ratingValue", out var rv) && rv.ValueKind == JsonValueKind.Number)
+    critic = rv.GetDouble().ToString("0.0", System.Globalization.CultureInfo.InvariantCulture);
+if (critic.Length > 0) Api.SetField("CriticRating", critic);
+
+// PEGI.
+var pegi = Api.RegexFirst(page, "n-pegi-age-(\\d+)");
+if (pegi.Length > 0) Api.SetField("Pegi", "PEGI " + pegi);
+
+// Release dates and Polish language version per platform; languages come from the record's platform.
+var releases = new List<(string Name, string Date, List<string> Notes)>();
+foreach (Match box in Regex.Matches(page, "S016meta-plat-tit\"><b>([^<]+)</b></p>\\s*<p class=\"S016meta-s-p5\"><span>([^<]*)</span></p>.*?S016meta-plat-desc\">(.*?)</p>", RegexOptions.Singleline)) {
+    var notes = Regex.Matches(box.Groups[3].Value, "<span>([^<]+)</span>").Select(m => Api.HtmlDecode(m.Groups[1].Value).Trim().TrimEnd('.')).ToList();
+    releases.Add((Api.HtmlDecode(box.Groups[1].Value).Trim(), box.Groups[2].Value.Trim(), notes));
+}
+// The first release on any platform gives the year (the headline date may be a later port).
+var firstYear = releases.Select(r => Regex.Match(r.Date, "\\d{4}")).Where(m => m.Success).Select(m => int.Parse(m.Value)).DefaultIfEmpty(0).Min();
+if (firstYear > 0) Api.SetField("ReleaseYear", firstYear.ToString());
+if (releases.Count > 0) {
+    var chosen = releases.FirstOrDefault(r => MapPlatform(r.Name) == platform);
+    if (chosen.Name is null) chosen = releases.FirstOrDefault(r => MapPlatform(r.Name) == "PC");
+    if (chosen.Name is null) chosen = releases[0];
+    var audio = new List<string>();
+    var subtitles = new List<string>();
+    foreach (var note in chosen.Notes) {
+        var lower = note.ToLowerInvariant();
+        var language = LanguageName(note.Split(' ')[0]);
+        if (lower.Contains("dialogi") || lower.Contains("dubbing") || lower.Contains("pełna")) audio.Add(language);
+        if (lower.Contains("napisy") || lower.Contains("kinowa") || lower.Contains("pełna")) subtitles.Add(language);
+    }
+    if (audio.Count > 0) Api.SetField("AudioLanguages", string.Join(", ", audio.Distinct()));
+    if (subtitles.Count > 0) Api.SetField("Subtitles", string.Join(", ", subtitles.Distinct()));
+}
+
+// Player statistics: average completion time becomes the playtime.
+string Stat(string label) => Api.RegexFirst(page, "S016meta-s-numb\">([\\d\\s,.]+)</span><span[^>]*>[^<]*<b>" + label);
+string completion = Stat("czas ukończenia").Trim();
+string avgPlay = Stat("czas gry").Trim();
+if (completion.Length > 0) Api.SetField("PlaytimeHours", completion.Replace(" ", ""));
+
+// Full description (all sections of the encyclopedia entry), the short summary first.
+string shortDesc = Api.HtmlDecode(S(game, "description"));
+string article = Api.Between(page, "id=\"description\"", "Autor opisu gry");
+int authorBox = article.LastIndexOf("<div class=\"cf\"><img");
+if (authorBox > 0) article = article[..authorBox];
+article = Regex.Replace(article, "<ul[^>]*enc-desc-ul.*?</ul>", "", RegexOptions.Singleline);
+article = article.Substring(article.IndexOf('>') + 1);
+string articleText = Text(article);
+string description = shortDesc;
+if (articleText.Length > 0) description = (shortDesc.Length > 0 ? shortDesc + "\n\n" : "") + articleText;
+if (description.Length > 0) Api.SetField("Description", description);
+
+// Voice cast ("Name (Role)") from the dubbing section, and the engine named in the article.
+string dubbing = Text(Api.Between(article, "Dubbing", "<h2"));
+var cast = Regex.Matches(dubbing, "(\\p{Lu}[\\p{L}'’.\\-]+(?: \\p{Lu}[\\p{L}'’.\\-]+){1,3}) \\(([^)]{1,60})\\)")
+    .Select(m => m.Groups[1].Value + " (" + m.Groups[2].Value + ")").Distinct().ToList();
+if (cast.Count > 0) Api.SetField("VoiceActors", string.Join(", ", cast));
+var engine = Regex.Match(articleText, "silnik(?:a|u|iem)?(?: graficzn\\w+)? (\\p{Lu}[\\w\\-]*(?: (?:Engine|\\p{Lu}[\\w\\-]*|\\d+))?(?: \\d+)?)");
+if (engine.Success) Api.SetField("Engine", engine.Groups[1].Value);
+
+// System requirements: disk size and the text for the comments.
+string reqHtml = Api.Between(page, "id=\"requirements\"", "id=\"expansions\"");
+if (reqHtml.Length == 0) reqHtml = Api.Between(page, "id=\"requirements\"", "id=\"ratings\"");
+string pcReq = Text(Api.Between(reqHtml, "sysr-pc-c\">", "</div>"));
+var size = Regex.Match(pcReq, "(\\d+(?:[.,]\\d+)?)\\s*GB\\s*(?:HDD|SSD|wolnego|miejsca)", RegexOptions.IgnoreCase);
+if (size.Success) Api.SetField("SizeGb", size.Groups[1].Value.Replace(',', '.'));
+
+// Series.
+string series = Api.HtmlDecode(Api.RegexFirst(page, "<h3><span>Gry z serii</span>\\s*([^<]+)</h3>")).Trim();
+
+// Everything without a dedicated field goes to the comments.
+var info = new List<string>();
+if (nickname.Length > 0) info.Add("Znana też jako: " + nickname);
+if (released.Length > 0) info.Add("Data wydania: " + released.Trim());
+if (ratings.Count > 0) info.Add("Oceny: " + string.Join(", ", ratings.Select(r => r.Source + " " + r.Score)));
+var polishPublisher = Api.HtmlDecode(Api.RegexFirst(page, "Polski wydawca:</span>\\s*<a[^>]*>([^<]+)</a>")).Trim();
+if (polishPublisher.Length > 0) info.Add("Polski wydawca: " + polishPublisher);
+if (series.Length > 0) info.Add("Seria: " + series);
+if (platformNames.Length > 0) info.Add("Platformy: " + string.Join(", ", platformNames));
+if (tags.Count > 0) info.Add("Tagi: " + string.Join(", ", tags));
+if (avgPlay.Length > 0) info.Add("Średni czas gry: " + avgPlay + " h");
+if (completion.Length > 0) info.Add("Średni czas ukończenia: " + completion + " h");
+foreach (var (pattern, caption) in new[] { ("chce zagrać", "chcą zagrać"), ("grało", "grali"), ("ukończyło</b>", "ukończyli"), ("ukończyło w 100%", "ukończyli w 100%") }) {
+    var n = Api.RegexFirst(page, "S016meta-s-numb\">([\\d\\s]+)</span><span[^>]*>graczy <b>" + pattern);
+    if (n.Length > 0) info.Add("Gracze, którzy " + caption + ": " + n.Trim());
+}
+if (releases.Count > 0) info.Add("\nPremiery:\n" + string.Join("\n", releases.Select(r => r.Name + ": " + r.Date + (r.Notes.Count > 0 ? " (" + string.Join("; ", r.Notes) + ")" : ""))));
+if (pcReq.Length > 0) info.Add("\nWymagania (PC):\n" + pcReq);
+Api.SetField("Comments", string.Join("\n", info));
+Api.SetField("URL", S(game, "url").Length > 0 ? S(game, "url") : gameUrl);
+
+// Cover: the large key art, the small box picture as a fallback.
+string cover = Api.MetaContent(page, "og:image");
+if (cover.Length == 0) cover = S(game, "image");
+if (cover.Length == 0 || !await Api.GetPicture(cover))
+    await Api.GetPicture(Api.RegexFirst(page, "S016-box-img-c\"><img src=\"([^\"]+)\""));
+
+// Expansions (with picture and description) and small DLC.
+string expansions = Api.Between(page, "id=\"expansions\"", "id=\"ratings\"");
+int extras = 0;
+foreach (var boxHtml in expansions.Split("class=\"g-box g-box-grid3\"").Skip(1)) {
+    string title = Api.HtmlDecode(Api.RegexFirst(boxHtml, "<h3>([^<]+)</h3>")).Trim();
+    string kind = Api.HtmlDecode(Api.RegexFirst(boxHtml, "<p class=\"mb0 fw600 cthem\">([^<]+)</p>")).Trim();
+    string date = Api.RegexFirst(boxHtml, "<p class=\"mb0\"><b>([^<]+)</b></p>").Trim();
+    string lead = Text(Api.RegexFirst(boxHtml, "<p class=\"lead[^\"]*\">(.*?)</p>"));
+    string link = Api.RegexFirst(boxHtml, "href=\"(/gry/[^\"]+)\"");
+    var extra = Api.AddExtra(title, kind == "Dodatek" ? "Rozszerzenie" : kind.Length > 0 ? kind : "DLC",
+        lead + (date.Length > 0 ? "\n\nPremiera: " + date : ""), link.Length > 0 ? Abs(link) : "");
+    await Api.GetExtraPicture(extra, Api.RegexFirst(boxHtml, "<img src=\"([^\"]+)\""));
+    if (extra is not null) extras++;
+}
+foreach (Match dlc in Regex.Matches(expansions, "<span class=\"fw600 cthem pr5\">([^<]*)</span>\\s*<strong class=\"pr5\">([^<]+)</strong>\\s*(?:<span class=\"fv50\">([^<]*)</span>)?")) {
+    string kind = Api.HtmlDecode(dlc.Groups[1].Value).Trim();
+    string date = dlc.Groups[3].Value.Trim();
+    if (Api.AddExtra(Api.HtmlDecode(dlc.Groups[2].Value), kind.Length > 0 ? kind : "DLC", date.Length > 0 ? "Premiera: " + date : "") is not null) extras++;
+}
+ldDoc.Dispose();
+Api.Log("Gotowe: " + plTitle + (extras > 0 ? ", dodatki: " + extras : ""));

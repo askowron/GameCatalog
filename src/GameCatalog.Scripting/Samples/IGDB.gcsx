@@ -1,0 +1,109 @@
+// Name: IGDB (API)
+// Description: Fetches data from the official IGDB API. Requires free Twitch keys - create an application at https://dev.twitch.tv/console , copy the Client ID and Client Secret, paste them below and run again.
+// Version: 2.0
+// Author: GameCatalog
+// Site: https://api.igdb.com
+string clientId = "";
+string clientSecret = "";
+if (clientId.Length == 0 || clientSecret.Length == 0) {
+    Api.ShowMessage("Skrypt IGDB wymaga darmowych kluczy Twitch. Załóż aplikację na dev.twitch.tv/console, skopiuj Identyfikator klienta i Tajny klucz klienta, wklej je na początku tego skryptu (Narzędzia > Skrypty) i uruchom ponownie.");
+    return;
+}
+string Q = ((char)34).ToString();
+string MapPlatformApi(string p) {
+    p = (p ?? "").ToLowerInvariant();
+    if (p.Contains("windows") || p == "pc") return "PC";
+    if (p.Contains("playstation 5")) return "PS5";
+    if (p.Contains("playstation 4")) return "PS4";
+    if (p.Contains("playstation 3")) return "PS3";
+    if (p.Contains("playstation vita")) return "PS Vita";
+    if (p.Contains("xbox series")) return "Xbox Series";
+    if (p.Contains("xbox one")) return "Xbox One";
+    if (p.Contains("xbox 360")) return "Xbox 360";
+    if (p.Contains("switch")) return "Switch";
+    if (p.Contains("wii u")) return "Wii U";
+    if (p.StartsWith("wii")) return "Wii";
+    if (p.Contains("3ds")) return "3DS";
+    if (p.Contains("mac")) return "Mac";
+    if (p.Contains("linux")) return "Linux";
+    if (p.Contains("ios") || p.Contains("android")) return "Mobile";
+    return "";
+}
+string EName(JsonElement e) {
+    if (e.TryGetProperty("name", out var n) && n.ValueKind == JsonValueKind.String) return n.GetString()!;
+    return "";
+}
+int EYear(JsonElement e) {
+    if (e.TryGetProperty("first_release_date", out var d) && d.ValueKind == JsonValueKind.Number) {
+        try { return System.DateTimeOffset.FromUnixTimeSeconds(d.GetInt64()).Year; } catch { }
+    }
+    return 0;
+}
+List<string> EList(JsonElement e, string p) {
+    var list = new List<string>();
+    if (e.TryGetProperty(p, out var v) && v.ValueKind == JsonValueKind.Array) {
+        foreach (var x in v.EnumerateArray()) {
+            var n = EName(x);
+            if (n.Length > 0) list.Add(n);
+        }
+    }
+    return list;
+}
+Api.Log("Loguję do Twitch...");
+var tok = await Api.PostPage("https://id.twitch.tv/oauth2/token?client_id=" + Api.UrlEncode(clientId) + "&client_secret=" + Api.UrlEncode(clientSecret) + "&grant_type=client_credentials", "");
+var token = Api.Between(tok, Q + "access_token" + Q + ":" + Q, Q);
+if (token.Length == 0) { Api.ShowMessage("Błąd autoryzacji Twitch (sprawdź klucze)."); return; }
+Api.SetRequestHeader("Client-ID", clientId);
+Api.SetRequestHeader("Authorization", "Bearer " + token);
+string q = Api.Title.Replace(Q, "");
+Api.Log("Szukam: " + Api.Title);
+var searchBody = "search " + Q + q + Q + "; fields name,first_release_date,platforms.name; limit 10; where version_parent = null;";
+var searchJson = await Api.PostPage("https://api.igdb.com/v4/games", searchBody);
+var sroot = Api.JsonRoot(searchJson, out var sdoc);
+var picks = new List<(int Id, string Label)>();
+if (sroot.ValueKind == JsonValueKind.Array) {
+    foreach (var g in sroot.EnumerateArray()) {
+        int id = g.TryGetProperty("id", out var gid) ? gid.GetInt32() : 0;
+        int y = EYear(g);
+        if (id > 0) picks.Add((id, EName(g) + (y > 0 ? " (" + y + ")" : "")));
+    }
+}
+sdoc.Dispose();
+if (picks.Count == 0) { Api.ShowMessage("Nie znaleziono gry w IGDB."); return; }
+int pick = 0;
+if (picks.Count > 1) {
+    pick = Api.PickList("Wybierz grę (IGDB):", picks.Select(x => x.Label).ToList());
+    if (pick < 0) return;
+}
+int appid = picks[pick].Id;
+Api.Log("Pobieram szczegóły...");
+var detBody = "fields name,summary,developers.name,publishers.name,genres.name,platforms.name,first_release_date,rating,cover.image_id,url; where id = " + appid + ";";
+var detJson = await Api.PostPage("https://api.igdb.com/v4/games", detBody);
+var droot = Api.JsonRoot(detJson, out var ddoc);
+if (droot.ValueKind != JsonValueKind.Array || droot.GetArrayLength() == 0) { ddoc.Dispose(); Api.ShowMessage("Brak szczegółów."); return; }
+var data = droot.EnumerateArray().First();
+if (data.TryGetProperty("summary", out var su) && su.ValueKind == JsonValueKind.String) {
+    var summary = su.GetString()!;
+    if (summary.Length > 0) Api.SetField("Description", summary);
+}
+var devs = EList(data, "developers");
+if (devs.Count > 0) Api.SetField("Developer", string.Join(", ", devs));
+var pubs = EList(data, "publishers");
+if (pubs.Count > 0) Api.SetField("Publisher", string.Join(", ", pubs));
+var genres = EList(data, "genres");
+if (genres.Count > 0) Api.SetField("Genre", string.Join(", ", genres.Take(3)));
+var plats = EList(data, "platforms").Select(x => MapPlatformApi(x)).Where(x => x.Length > 0).ToList();
+if (plats.Count > 0) Api.SetField("Platform", plats[0]);
+int year = EYear(data);
+if (year > 0) Api.SetField("ReleaseYear", year.ToString());
+if (data.TryGetProperty("rating", out var rt) && rt.ValueKind == JsonValueKind.Number) {
+    double r = rt.GetDouble();
+    if (r > 0) Api.SetField("CriticRating", (r / 10).ToString("0.0"));
+}
+if (data.TryGetProperty("cover", out var co) && co.TryGetProperty("image_id", out var iid)) {
+    var img = iid.GetString() ?? "";
+    if (img.Length > 0) await Api.GetPicture("https://images.igdb.com/igdb/image/upload/t_cover_big/" + img + ".jpg");
+}
+if (data.TryGetProperty("url", out var u) && u.ValueKind == JsonValueKind.String) Api.SetField("URL", u.GetString() ?? "");
+ddoc.Dispose();
+Api.Log("Gotowe.");

@@ -27,8 +27,16 @@ public sealed class GameScript
 
     public static GameScript Load(string path)
     {
-        var code = File.ReadAllText(path);
-        var s = new GameScript { FilePath = path, Code = code, Name = Path.GetFileNameWithoutExtension(path) };
+        var s = Parse(File.ReadAllText(path));
+        s.FilePath = path;
+        if (s.Name.Length == 0) s.Name = Path.GetFileNameWithoutExtension(path);
+        return s;
+    }
+
+    /// <summary>Reads the header metadata of script code.</summary>
+    public static GameScript Parse(string code)
+    {
+        var s = new GameScript { Code = code };
         foreach (var line in code.Split('\n').Take(30))
         {
             var t = line.Trim().TrimStart('/').Trim();

@@ -30,23 +30,13 @@ public static class ScriptRunner
         var result = new GameInfoResult { Log = log };
         try
         {
-            var options = ScriptOptions.Default
-                .AddReferences(typeof(Game).Assembly, typeof(ScriptApi).Assembly,
-                    typeof(System.Text.Json.JsonDocument).Assembly,
-                    typeof(System.Text.RegularExpressions.Regex).Assembly,
-                    typeof(System.Net.Http.HttpClient).Assembly)
-                .WithImports("System", "System.Collections.Generic", "System.Linq",
-                    "System.Text.RegularExpressions", "System.Text.Json", "System.Threading.Tasks");
             using var cts = CancellationTokenSource.CreateLinkedTokenSource(ct);
             cts.CancelAfter(Timeout);
-            var script = CSharpScript.Create(code, options, typeof(ScriptGlobals));
-            var diagnostics = script.Compile();
-            var errors = diagnostics.Where(d => d.Severity == Microsoft.CodeAnalysis.DiagnosticSeverity.Error).ToList();
+            var script = Create(code);
+            var errors = Errors(script);
             if (errors.Count > 0)
             {
-                result.Error = ScriptMessages.CompileErrors(string.Join("\n",
-                    errors.Select(e => ScriptMessages.CompileErrorLine(
-                        e.Location.GetLineSpan().StartLinePosition.Line + 1, e.GetMessage()))));
+                result.Error = ScriptMessages.CompileErrors(string.Join("\n", errors));
                 return result;
             }
             var state = await script.RunAsync(new ScriptGlobals(api), null, cts.Token).ConfigureAwait(false);
@@ -72,6 +62,27 @@ public static class ScriptRunner
         }
         return result;
     }
+
+    /// <summary>Compiles the code without running it; returns the error lines (empty when it compiles).</summary>
+    public static IReadOnlyList<string> CompileErrors(string code) => Errors(Create(code));
+
+    private static Script<object> Create(string code)
+    {
+        var options = ScriptOptions.Default
+            .AddReferences(typeof(Game).Assembly, typeof(ScriptApi).Assembly,
+                typeof(System.Text.Json.JsonDocument).Assembly,
+                typeof(System.Text.RegularExpressions.Regex).Assembly,
+                typeof(System.Net.Http.HttpClient).Assembly)
+            .WithImports("System", "System.Collections.Generic", "System.Linq",
+                "System.Text.RegularExpressions", "System.Text.Json", "System.Threading.Tasks");
+        return CSharpScript.Create(code, options, typeof(ScriptGlobals));
+    }
+
+    private static List<string> Errors(Script<object> script) =>
+        script.Compile()
+            .Where(d => d.Severity == Microsoft.CodeAnalysis.DiagnosticSeverity.Error)
+            .Select(e => ScriptMessages.CompileErrorLine(e.Location.GetLineSpan().StartLinePosition.Line + 1, e.GetMessage()))
+            .ToList();
 
     public static Task<GameInfoResult> RunAsync(GameScript script, Game game,
         Func<string, IList<string>, int>? picker = null, CancellationToken ct = default) =>

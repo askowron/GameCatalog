@@ -24,7 +24,6 @@ public class SourceRulesTests
         "GameCatalog.Core/Services/SampleDataFactory.cs",
         "GameCatalog.App/Services/HtmlTemplates.cs",   // user-editable templates (stage 5)
         "GameCatalog.Storage/AmcXmlImporter.cs",       // stored media type values
-        "GameCatalog.Scripting/ScriptSamples.cs",      // sample script bodies
         "GameCatalog.UI/Components/IconThemeImageList.cs", // legacy theme names read from old prefs.json
         "GameCatalog.Core/Fields/YesNo.cs",            // legacy stored value "Tak"
     };
