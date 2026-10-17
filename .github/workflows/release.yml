@@ -1,0 +1,63 @@
+name: Release
+
+# Push a tag v<Version> (Version from Directory.Build.props) to build and publish a release:
+#   git tag v1.1 && git push origin v1.1
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Existing tag to (re)build, e.g. v1.0
+        required: true
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: windows-latest
+    env:
+      TAG: ${{ github.event.inputs.tag || github.ref_name }}
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ env.TAG }}
+
+      - uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Check tag matches Version
+        id: version
+        shell: pwsh
+        run: |
+          $version = ([xml](Get-Content Directory.Build.props)).Project.PropertyGroup.Version | Where-Object { $_ } | Select-Object -First 1
+          if ("v$version" -ne $env:TAG) {
+            Write-Error "Tag $env:TAG does not match Version $version in Directory.Build.props"
+            exit 1
+          }
+          "version=$version" >> $env:GITHUB_OUTPUT
+
+      - name: Test
+        run: dotnet test GameCatalog.slnx -c Release
+
+      - name: Publish
+        run: dotnet publish src/GameCatalog.App/GameCatalog.App.csproj -c Release -r win-x64 --self-contained false -o publish
+
+      - name: Package
+        shell: pwsh
+        run: Compress-Archive -Path publish/* -DestinationPath "GameCatalog-${{ steps.version.outputs.version }}.zip"
+
+      - name: Create or update GitHub release
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $zip = "GameCatalog-${{ steps.version.outputs.version }}.zip"
+          gh release view $env:TAG *> $null
+          if ($LASTEXITCODE -eq 0) {
+            gh release upload $env:TAG $zip --clobber
+          } else {
+            gh release create $env:TAG $zip --title "GameCatalog ${{ steps.version.outputs.version }}" --generate-notes
+          }

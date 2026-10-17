@@ -1,0 +1,44 @@
+name: Bug report
+description: Something does not work as expected / Coś nie działa
+labels: [bug]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened?
+      description: What did you do, what did you expect and what happened instead?
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Open a catalog
+        2. ...
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: GameCatalog version
+      description: Help → About
+      placeholder: '1.0'
+    validations:
+      required: true
+  - type: dropdown
+    id: language
+    attributes:
+      label: Interface language
+      options: [Polski, English, Other]
+  - type: input
+    id: windows
+    attributes:
+      label: Windows version
+      placeholder: Windows 11 24H2
+  - type: textarea
+    id: log
+    attributes:
+      label: Log
+      description: Relevant lines from the newest file in `Documents\GameCatalog\Logs`
+      render: text

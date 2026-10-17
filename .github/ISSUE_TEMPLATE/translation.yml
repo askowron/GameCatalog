@@ -1,0 +1,23 @@
+name: Translation
+description: Add or fix a translation / Dodaj lub popraw tłumaczenie
+labels: [translation]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use *Help → Export translation template* to get a file with every key, translate it and attach it here
+        (or open a pull request adding it to `src/GameCatalog.App/Languages`).
+  - type: input
+    id: language
+    attributes:
+      label: Language
+      placeholder: Deutsch (de)
+    validations:
+      required: true
+  - type: textarea
+    id: details
+    attributes:
+      label: Details
+      description: Attach the translated .json file or list the texts to fix.
+    validations:
+      required: true
