@@ -21,4 +21,19 @@ public class ThumbnailViewTests
         Assert.Equal(0, tv.Items[1].ImageIndex);
         Assert.Equal(32, placeholder.Width);                 // caller's placeholder is still alive
     }
+
+    [Fact]
+    public void FitInto_PortraitCover_KeepsAspectRatioAndCentersIt()
+    {
+        using var cover = new Bitmap(30, 60);
+        using (var g = Graphics.FromImage(cover)) g.Clear(Color.Red);
+
+        using var thumb = ThumbnailView.FitInto(cover, new Size(64, 64));
+
+        Assert.Equal(new Size(64, 64), thumb.Size);
+        Assert.Equal(Color.Red.ToArgb(), thumb.GetPixel(32, 32).ToArgb());   // cover in the middle
+        Assert.Equal(Color.Red.ToArgb(), thumb.GetPixel(32, 1).ToArgb());    // full height used
+        Assert.Equal(0, thumb.GetPixel(2, 32).A);                            // transparent side bars
+        Assert.Equal(0, thumb.GetPixel(61, 32).A);
+    }
 }

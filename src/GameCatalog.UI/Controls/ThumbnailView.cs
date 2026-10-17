@@ -6,7 +6,7 @@ namespace GameCatalog.UI.Controls;
 public sealed class ThumbnailView : ListView
 {
     private bool _filling;
-    private readonly ImageList _images = new() { ImageSize = new Size(64, 64), ColorDepth = ColorDepth.Depth32Bit };
+    private readonly ImageList _images = new() { ImageSize = ThumbSize, ColorDepth = ColorDepth.Depth32Bit };
 
     public ThumbnailView()
     {
@@ -37,10 +37,14 @@ public sealed class ThumbnailView : ListView
         {
             Items.Clear();
             _images.Images.Clear();
-            if (Placeholder is not null) _images.Images.Add(Placeholder);
+            if (Placeholder is not null)
+            {
+                using var fitted = FitInto(Placeholder, ThumbSize);
+                _images.Images.Add(fitted);   // copied by the ImageList (its handle exists)
+            }
             else
             {
-                using var blank = new Bitmap(64, 64);
+                using var blank = new Bitmap(ThumbSize.Width, ThumbSize.Height);
                 _images.Images.Add(blank);   // copied by the ImageList (its handle exists)
             }
             foreach (var (number, caption, cover) in items)
@@ -82,9 +86,31 @@ public sealed class ThumbnailView : ListView
         {
             using var ms = new MemoryStream(bytes);
             using var img = Image.FromStream(ms);
-            return new Bitmap(img);
+            return FitInto(img, ThumbSize);
         }
         catch (ArgumentException) { return null; }
+    }
+
+    private static readonly Size ThumbSize = new(64, 64);
+
+    /// <summary>
+    /// Scales the image to fit the box, keeping its aspect ratio, centered on a transparent
+    /// background (the ImageList would otherwise stretch portrait covers to a square).
+    /// </summary>
+    public static Bitmap FitInto(Image image, Size box)
+    {
+        double scale = Math.Min((double)box.Width / image.Width, (double)box.Height / image.Height);
+        int w = Math.Max(1, (int)Math.Round(image.Width * scale));
+        int h = Math.Max(1, (int)Math.Round(image.Height * scale));
+        var result = new Bitmap(box.Width, box.Height, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
+        using var g = Graphics.FromImage(result);
+        g.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.HighQualityBicubic;
+        g.PixelOffsetMode = System.Drawing.Drawing2D.PixelOffsetMode.HighQuality;
+        using var attributes = new System.Drawing.Imaging.ImageAttributes();
+        attributes.SetWrapMode(System.Drawing.Drawing2D.WrapMode.TileFlipXY);   // no faded edges
+        g.DrawImage(image, new Rectangle((box.Width - w) / 2, (box.Height - h) / 2, w, h),
+            0, 0, image.Width, image.Height, GraphicsUnit.Pixel, attributes);
+        return result;
     }
 
     protected override void OnSelectedIndexChanged(EventArgs e)
