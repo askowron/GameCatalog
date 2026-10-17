@@ -666,6 +666,8 @@
     "Html.Extras": "Extras / DLC",
     "Html.Rating": "rating",
     "HtmlTemplate.Detailed": "Detailed",
-    "HtmlTemplate.Compact": "Compact"
+    "HtmlTemplate.Compact": "Compact",
+
+    "About.Credits": "Author: {0}\n{1}\n{2}\nLicense: GNU GPL v3"
   }
 }

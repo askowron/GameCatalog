@@ -19,7 +19,7 @@ dotnet test GameCatalog.slnx --filter "FullyQualifiedName~DialogSmokeTests"
 dotnet run --project src/GameCatalog.App
 ```
 
-`GameCatalog.slnx` is the XML solution format (needs a recent SDK / VS 2022 17.13+). Projects target `net10.0` (no UI) or `net10.0-windows` (WinForms). Shared MSBuild settings (Nullable, ImplicitUsings, LangVersion, `Version` in `YY.M.D` form) live only in `Directory.Build.props`; `.csproj` files must not repeat them. `Directory.Build.targets` drops the WebView2 WPF assembly so the build stays warning-free.
+`GameCatalog.slnx` is the XML solution format (needs a recent SDK / VS 2022 17.13+). Projects target `net10.0` (no UI) or `net10.0-windows` (WinForms). Shared MSBuild settings (Nullable, ImplicitUsings, LangVersion, `Version` as `Major.Minor`, author, copyright) live only in `Directory.Build.props`; `.csproj` files must not repeat them. `Directory.Build.targets` drops the WebView2 WPF assembly so the build stays warning-free.
 
 ## Architecture
 
@@ -76,7 +76,7 @@ UI is verified manually (both languages).
 - **Game identity** is `Game.Number` (the SQLite primary key). Extras, loans and custom values reference it by number; renumbering goes through `NumberingService` so references stay in sync.
 - `GameList.ReplaceAll` snapshots its input before clearing; LINQ over `games.Games` is fine.
 - Plugin and extension code runs behind isolation boundaries (`Guard` in `MainForm.Plugins.cs`): catch, log, show — never let it crash the app.
-- `AssemblyVersion` comes from `Version` in `Directory.Build.props` (`YY.M.D`).
+- The program version is `Version` in `Directory.Build.props` (`Major.Minor`, currently 1.0); never add `AssemblyVersion` to a `.csproj`. A release is tagged `v<Version>` on GitHub (https://github.com/askowron/GameCatalog). License: GPL-3.0 (`LICENSE`).
 - **Adding a field to `Game`** touches several places that must stay in sync:
   - `GameFields.All`, `GameFieldValues.Get`, `GameFieldWriter.Set`
   - the SQLite schema and the upsert/load code in `SqliteGameCatalogStore` — existing databases do not gain columns through `CREATE TABLE IF NOT EXISTS`, so add an `ALTER TABLE` path (none exists yet)

@@ -4,10 +4,13 @@
     <LangVersion>latest</LangVersion>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <!-- Version scheme kept from the original port: YY.M.D -->
-    <Version>26.10.14</Version>
+    <!-- Release version (Major.Minor); also tagged on GitHub as v<Version>. -->
+    <Version>1.0</Version>
     <Product>GameCatalog</Product>
-    <Company>GameCatalog</Company>
-    <Copyright>Port of Ant Movie Catalog (GPL) — https://www.antp.be/software/moviecatalog/</Copyright>
+    <Company>Adam Skowroński</Company>
+    <Authors>Adam Skowroński</Authors>
+    <Copyright>© 2026 Adam Skowroński. GNU GPL v3. Port of Ant Movie Catalog — https://www.antp.be/software/moviecatalog/</Copyright>
+    <PackageLicenseExpression>GPL-3.0-or-later</PackageLicenseExpression>
+    <RepositoryUrl>https://github.com/askowron/GameCatalog</RepositoryUrl>
   </PropertyGroup>
 </Project>

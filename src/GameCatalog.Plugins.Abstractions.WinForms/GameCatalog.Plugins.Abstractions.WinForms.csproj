@@ -5,6 +5,5 @@
   <PropertyGroup>
     <TargetFramework>net10.0-windows</TargetFramework>
     <UseWindowsForms>true</UseWindowsForms>
-    <AssemblyVersion>26.10.17.1</AssemblyVersion>
   </PropertyGroup>
 </Project>

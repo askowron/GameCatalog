@@ -39,7 +39,7 @@ namespace GameCatalog.App.Forms
             this.lblDescription.Dock = System.Windows.Forms.DockStyle.Fill;
             this.lblDescription.Location = new System.Drawing.Point(0, 0);
             this.lblDescription.Name = "lblDescription";
-            this.lblDescription.Size = new System.Drawing.Size(444, 225);
+            this.lblDescription.Size = new System.Drawing.Size(444, 300);
             this.lblDescription.TabIndex = 0;
             this.lblDescription.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             //
@@ -47,7 +47,7 @@ namespace GameCatalog.App.Forms
             //
             this.btnOk.DialogResult = System.Windows.Forms.DialogResult.OK;
             this.btnOk.Dock = System.Windows.Forms.DockStyle.Bottom;
-            this.btnOk.Location = new System.Drawing.Point(0, 225);
+            this.btnOk.Location = new System.Drawing.Point(0, 300);
             this.btnOk.Name = "btnOk";
             this.btnOk.Size = new System.Drawing.Size(444, 36);
             this.btnOk.TabIndex = 1;
@@ -63,7 +63,7 @@ namespace GameCatalog.App.Forms
             this.AcceptButton = this.btnOk;
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(444, 261);
+            this.ClientSize = new System.Drawing.Size(444, 336);
             this.Controls.Add(this.lblDescription);
             this.Controls.Add(this.btnOk);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog;
