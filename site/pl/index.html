@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="pl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>GameCatalog – katalog gier wideo na Windows</title>
+  <meta name="description" content="Darmowy program open source do katalogowania kolekcji gier na Windows. Port Ant Movie Catalog dla gier: okładki, DLC, wypożyczenia, statystyki i skrypty C# pobierające dane ze Steama i GRY-Online.pl.">
+  <link rel="canonical" href="https://askowron.github.io/GameCatalog/pl/">
+  <link rel="alternate" hreflang="en" href="https://askowron.github.io/GameCatalog/">
+  <link rel="alternate" hreflang="pl" href="https://askowron.github.io/GameCatalog/pl/">
+  <link rel="alternate" hreflang="x-default" href="https://askowron.github.io/GameCatalog/">
+  <meta property="og:title" content="GameCatalog – katalog gier wideo na Windows">
+  <meta property="og:description" content="Darmowy program open source do katalogowania gier, port Ant Movie Catalog.">
+  <meta property="og:image" content="https://askowron.github.io/GameCatalog/images/thumbnails.png">
+  <meta property="og:url" content="https://askowron.github.io/GameCatalog/pl/">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="icon" href="../favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&display=swap">
+  <link rel="stylesheet" href="../style.css">
+</head>
+<body>
+  <header class="desktop">
+    <div class="wrap">
+      <div class="topbar">
+        <a class="brand" href="./">
+          <svg viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="6" fill="#fff" fill-opacity=".14"/><rect x="5" y="7" width="22" height="18" rx="2" fill="#fff"/><rect x="5" y="7" width="22" height="4" rx="2" fill="#0a5fcc"/><rect x="8" y="14" width="4" height="8" fill="#0e6b6b"/><rect x="14" y="14" width="4" height="8" fill="#0e6b6b"/><rect x="20" y="14" width="4" height="8" fill="#0e6b6b"/></svg>
+          GameCatalog
+        </a>
+        <nav aria-label="Język">
+          <a href="../" hreflang="en" lang="en">English</a>
+          <a href="./" hreflang="pl" aria-current="page">Polski</a>
+        </nav>
+      </div>
+
+      <div class="hero">
+        <h1>Wszystkie Twoje gry w jednym katalogu</h1>
+        <p>GameCatalog to darmowy program na Windows dla kolekcjonerów. Zapisuj pudełka i wersje cyfrowe, to, co już ukończyłeś, i komu pożyczyłeś grę, a szczegóły niech uzupełnią skrypty ze Steama.</p>
+        <div class="actions">
+          <a class="button button-primary" href="https://github.com/askowron/GameCatalog/releases/latest">Pobierz na Windows</a>
+          <a class="button button-secondary" href="https://github.com/askowron/GameCatalog">Kod źródłowy na GitHubie</a>
+        </div>
+        <p class="hero-note">Darmowy i otwarty (GPL-3.0). Windows 10 i 11.</p>
+      </div>
+
+      <figure class="app-window">
+        <img src="../images/main-window.png" width="1266" height="793"
+             alt="Główne okno GameCatalog: lista gier po lewej, dane gry Wiedźmin 3 po prawej i okładka pod listą.">
+      </figure>
+    </div>
+  </header>
+
+  <main>
+    <section class="wrap" aria-labelledby="features-title">
+      <h2 id="features-title">Co potrafi</h2>
+      <p class="lede">Katalog na pulpit w duchu Ant Movie Catalog, przebudowany dla gier. Cały katalog to jeden plik, który możesz skopiować, zarchiwizować i trzymać latami.</p>
+      <ul class="features">
+        <li>
+          <h3>Opis każdej gry</h3>
+          <p>Producent, wydawca, platforma, sklep, rok wydania, gatunek, PEGI, czas gry, Twoja ocena i ocena krytyków, a do tego własne pola.</p>
+        </li>
+        <li>
+          <h3>Postęp w grach</h3>
+          <p>Oznaczaj gry jako do zagrania, w trakcie, wstrzymane, ukończone, na 100% albo porzucone, razem z datą ukończenia.</p>
+        </li>
+        <li>
+          <h3>Okładki i DLC</h3>
+          <p>Dodaj okładkę do każdej gry, a pod nią dodatki, przepustki sezonowe i ścieżki dźwiękowe.</p>
+        </li>
+        <li>
+          <h3>Dane z internetu</h3>
+          <p>Wbudowane skrypty wyszukują grę na Steamie, w IGDB, Wikipedii i na GRY-Online.pl, a Ty wybierasz, co przepisać.</p>
+        </li>
+        <li>
+          <h3>Szybkie wyszukiwanie</h3>
+          <p>Sortuj, grupuj i przeszukuj listę, przełącz się na miniatury okładek albo otwórz kartę gry do wydruku lub skopiowania.</p>
+        </li>
+        <li>
+          <h3>Wypożyczenia i statystyki</h3>
+          <p>Sprawdź, kto i kiedy pożyczył grę, oraz jak kolekcja dzieli się na platformy, statusy i lata.</p>
+        </li>
+      </ul>
+    </section>
+
+    <section class="wrap" aria-labelledby="screens-title">
+      <h2 id="screens-title">Zobacz, jak wygląda</h2>
+      <div class="screens">
+        <figure>
+          <img src="../images/game-card.png" width="1266" height="793" loading="lazy"
+               alt="Karta HTML gry Wiedźmin 3 z okładką, danymi i listą DLC.">
+          <figcaption>Karta gry tworzona z szablonu HTML, który możesz edytować.</figcaption>
+        </figure>
+        <figure>
+          <img src="../images/thumbnails.png" width="1266" height="793" loading="lazy"
+               alt="Kolekcja pokazana jako siatka miniatur okładek.">
+          <figcaption>Cała kolekcja jako miniatury okładek.</figcaption>
+        </figure>
+      </div>
+    </section>
+
+    <section class="amc" aria-labelledby="amc-title">
+      <div class="wrap amc-grid">
+        <h2 id="amc-title">Znasz Ant Movie Catalog?</h2>
+        <div>
+          <p>GameCatalog wiernie naśladuje AMC: to samo główne okno, motywy ikon paska narzędzi, grupowanie, szablony HTML i skrypty pobierające dane z sieci.</p>
+          <p>Zaimportuj swój katalog AMC w XML, a jego pola trafią do odpowiedników dla gier. Możesz też importować pliki CSV i foldery z grami.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="wrap" aria-labelledby="extend-title">
+      <h2 id="extend-title">Dopasuj go do siebie</h2>
+      <ul class="extend">
+        <li>
+          <h3>Skrypty</h3>
+          <p>Pisz skrypty C#, które pobierają lub zmieniają dane gier. Zacznij od przykładów dla Steama, IGDB, Wikipedii i GRY-Online.pl.</p>
+          <a href="https://github.com/askowron/GameCatalog/tree/master/src/GameCatalog.Scripting/Samples">Zobacz przykładowe skrypty</a>
+        </li>
+        <li>
+          <h3>Pluginy</h3>
+          <p>Dodawaj importery, eksportery, polecenia i panele boczne. Każdy plugin działa w izolacji, więc wadliwy nie zamknie programu.</p>
+          <a href="https://github.com/askowron/GameCatalog/blob/master/samples/GameCatalog.Plugin.Sample/README.md">Przeczytaj poradnik pluginów (EN)</a>
+        </li>
+        <li>
+          <h3>Tłumaczenia</h3>
+          <p>Program jest po polsku i angielsku. Wyeksportuj szablon tłumaczenia z menu Pomoc i dodaj swój język.</p>
+          <a href="https://github.com/askowron/GameCatalog/blob/master/CONTRIBUTING.md#translations">Jak przetłumaczyć (EN)</a>
+        </li>
+      </ul>
+    </section>
+
+    <section class="wrap get" aria-labelledby="get-title">
+      <h2 id="get-title">Pobierz GameCatalog</h2>
+      <dl>
+        <dt>System</dt>
+        <dd>Windows 10 lub 11</dd>
+        <dt>Środowisko</dt>
+        <dd><a href="https://dotnet.microsoft.com/download/dotnet/10.0">.NET 10 Desktop Runtime</a></dd>
+        <dt>Karta gry</dt>
+        <dd>Microsoft Edge WebView2 Runtime, wbudowany w Windows 11</dd>
+        <dt>Instalacja</dt>
+        <dd>Rozpakuj ZIP w dowolnym miejscu i uruchom GameCatalog.App.exe</dd>
+      </dl>
+      <a class="button button-primary" href="https://github.com/askowron/GameCatalog/releases/latest">Pobierz najnowszą wersję</a>
+    </section>
+  </main>
+
+  <footer>
+    <div class="wrap">
+      <p>GameCatalog, autor: Adam Skowroński. Licencja <a href="https://github.com/askowron/GameCatalog/blob/master/LICENSE">GNU GPL v3</a>. Oparty na <a href="https://www.antp.be/software/moviecatalog/">Ant Movie Catalog</a> autorstwa Antoine'a Pottena.</p>
+      <p>Tytuły gier i okładki na zrzutach należą do ich wydawców.</p>
+    </div>
+  </footer>
+</body>
+</html>

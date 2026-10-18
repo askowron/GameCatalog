@@ -1,0 +1,276 @@
+/* GameCatalog landing page. One family (Archivo) in two widths: expanded for headings, normal for text. */
+:root {
+  --desktop: #0e6b6b;
+  --desktop-deep: #0a5555;
+  --window: #ffffff;
+  --surface: #f2f5f6;
+  --ink: #1b2429;
+  --ink-soft: #4a565c;
+  --select: #0a5fcc;
+  --select-ink: #ffffff;
+  --rule: #cbd3d7;
+  --on-desktop: #ffffff;
+  --on-desktop-soft: #cfe6e6;
+  --measure: 66ch;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --desktop: #0b4f4f;
+    --desktop-deep: #083c3c;
+    --window: #161d21;
+    --surface: #1d262b;
+    --ink: #e6ecee;
+    --ink-soft: #a9b6bc;
+    --select: #5b9cf0;
+    --select-ink: #0c1418;
+    --rule: #34424a;
+  }
+}
+
+*,
+*::before,
+*::after { box-sizing: border-box; }
+
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  margin: 0;
+  background: var(--window);
+  color: var(--ink);
+  font-family: "Archivo", system-ui, sans-serif;
+  font-size: 1.0625rem;
+  line-height: 1.6;
+}
+
+img { display: block; max-width: 100%; height: auto; }
+
+a { color: var(--select); text-underline-offset: 0.18em; }
+
+:focus-visible {
+  outline: 3px solid var(--select);
+  outline-offset: 3px;
+}
+
+h1, h2, h3 {
+  font-stretch: 125%;
+  font-weight: 800;
+  line-height: 1.1;
+  letter-spacing: -0.01em;
+  margin: 0;
+}
+
+h2 { font-size: clamp(1.6rem, 1.2rem + 1.6vw, 2.25rem); }
+h3 { font-size: 1.15rem; font-stretch: 112%; font-weight: 700; }
+
+p { margin: 0; }
+
+.wrap {
+  width: min(1120px, 100% - 32px);
+  margin-inline: auto;
+}
+
+/* ---------- Desktop (hero) ---------- */
+
+.desktop {
+  --overhang: clamp(60px, 14vw, 200px);
+  /* The app window hangs over the edge of the desktop into the page below. */
+  background: linear-gradient(var(--desktop) calc(100% - var(--overhang)), var(--window) 0);
+  color: var(--on-desktop);
+  padding-top: 20px;
+}
+
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  font-size: 0.95rem;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: inherit;
+  text-decoration: none;
+  font-weight: 700;
+  font-stretch: 112%;
+}
+
+.brand svg { width: 28px; height: 28px; }
+
+.topbar nav { display: flex; gap: 20px; }
+.topbar nav a { color: var(--on-desktop-soft); text-decoration: none; }
+.topbar nav a:hover,
+.topbar nav a[aria-current] { color: var(--on-desktop); text-decoration: underline; }
+
+.hero {
+  padding-block: clamp(48px, 8vw, 96px) clamp(32px, 5vw, 56px);
+  max-width: 46rem;
+}
+
+.hero h1 {
+  font-size: clamp(2.4rem, 1.4rem + 4.4vw, 4.6rem);
+  font-weight: 900;
+}
+
+.hero p {
+  margin-top: 20px;
+  font-size: clamp(1.1rem, 1rem + 0.4vw, 1.3rem);
+  color: var(--on-desktop-soft);
+  max-width: 38rem;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 32px;
+}
+
+.button {
+  display: inline-block;
+  padding: 12px 22px;
+  border-radius: 3px;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+/* On the desktop the primary button stays white in both colour schemes. */
+.button-primary {
+  background: #ffffff;
+  color: #0a5555;
+  box-shadow: inset -2px -2px 0 rgb(0 0 0 / 0.18);
+}
+.button-primary:hover { background: #e8f3f3; }
+
+.button-secondary {
+  color: var(--on-desktop);
+  border: 2px solid var(--on-desktop-soft);
+  padding: 10px 20px;
+}
+.button-secondary:hover { border-color: var(--on-desktop); }
+
+.desktop :focus-visible { outline-color: var(--on-desktop); }
+
+.hero-note {
+  margin-top: 14px;
+  font-size: 0.9rem;
+  color: var(--on-desktop-soft);
+}
+
+/* The app window lying on the desktop. */
+.app-window {
+  margin: 0;
+  border: 1px solid rgb(0 0 0 / 0.35);
+  border-radius: 8px 8px 0 0;
+  overflow: hidden;
+  box-shadow: 0 24px 60px rgb(0 0 0 / 0.35);
+  background: var(--window);
+}
+
+/* ---------- Page sections ---------- */
+
+main > section { padding-block: clamp(56px, 8vw, 96px); }
+main > section + section { border-top: 1px solid var(--rule); }
+
+.lede {
+  margin-top: 16px;
+  color: var(--ink-soft);
+  max-width: var(--measure);
+}
+
+.features {
+  list-style: none;
+  margin: 40px 0 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
+  gap: 32px 48px;
+}
+
+.features li { max-width: 34rem; }
+.features p { margin-top: 6px; color: var(--ink-soft); }
+
+.screens {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 420px), 1fr));
+  gap: 32px;
+  margin-top: 40px;
+}
+
+.screens figure { margin: 0; }
+.screens img {
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+}
+.screens figcaption {
+  margin-top: 10px;
+  color: var(--ink-soft);
+  font-size: 0.95rem;
+}
+
+.amc {
+  background: var(--surface);
+}
+
+.amc-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr));
+  gap: 32px 64px;
+  align-items: start;
+}
+
+.amc-grid p + p { margin-top: 14px; }
+
+.extend {
+  list-style: none;
+  margin: 32px 0 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
+  gap: 0 48px;
+}
+
+.extend li {
+  padding-block: 20px;
+  border-top: 2px solid var(--ink);
+}
+
+.extend p { margin-top: 6px; color: var(--ink-soft); }
+.extend a { display: inline-block; margin-top: 10px; font-weight: 700; }
+
+.get dl {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 10px 32px;
+  margin: 28px 0 0;
+  max-width: var(--measure);
+}
+
+.get dt { font-weight: 700; }
+.get dd { margin: 0; color: var(--ink-soft); }
+
+.get .button-primary {
+  margin-top: 32px;
+  background: var(--select);
+  color: var(--select-ink);
+  box-shadow: none;
+}
+.get .button-primary:hover { filter: brightness(1.08); }
+
+footer {
+  border-top: 1px solid var(--rule);
+  padding-block: 32px 48px;
+  color: var(--ink-soft);
+  font-size: 0.92rem;
+}
+
+footer p + p { margin-top: 6px; }
+
+@media (max-width: 600px) {
+  .topbar nav { gap: 14px; }
+  .get dl { grid-template-columns: 1fr; gap: 2px; }
+  .get dd { margin-bottom: 10px; }
+}

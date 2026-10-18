@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>GameCatalog – catalogue your video games on Windows</title>
+  <meta name="description" content="Free, open-source Windows app for cataloguing your video game collection. A port of Ant Movie Catalog for games: covers, DLC, loans, statistics, C# scripts that fetch game data from Steam and other sites.">
+  <link rel="canonical" href="https://askowron.github.io/GameCatalog/">
+  <link rel="alternate" hreflang="en" href="https://askowron.github.io/GameCatalog/">
+  <link rel="alternate" hreflang="pl" href="https://askowron.github.io/GameCatalog/pl/">
+  <link rel="alternate" hreflang="x-default" href="https://askowron.github.io/GameCatalog/">
+  <meta property="og:title" content="GameCatalog – catalogue your video games on Windows">
+  <meta property="og:description" content="Free, open-source game cataloguer for Windows, ported from Ant Movie Catalog.">
+  <meta property="og:image" content="https://askowron.github.io/GameCatalog/images/thumbnails.png">
+  <meta property="og:url" content="https://askowron.github.io/GameCatalog/">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&display=swap">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="desktop">
+    <div class="wrap">
+      <div class="topbar">
+        <a class="brand" href="./">
+          <svg viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="6" fill="#fff" fill-opacity=".14"/><rect x="5" y="7" width="22" height="18" rx="2" fill="#fff"/><rect x="5" y="7" width="22" height="4" rx="2" fill="#0a5fcc"/><rect x="8" y="14" width="4" height="8" fill="#0e6b6b"/><rect x="14" y="14" width="4" height="8" fill="#0e6b6b"/><rect x="20" y="14" width="4" height="8" fill="#0e6b6b"/></svg>
+          GameCatalog
+        </a>
+        <nav aria-label="Language">
+          <a href="./" hreflang="en" aria-current="page">English</a>
+          <a href="pl/" hreflang="pl" lang="pl">Polski</a>
+        </nav>
+      </div>
+
+      <div class="hero">
+        <h1>Every game you own, in one catalogue</h1>
+        <p>GameCatalog is a free Windows app for collectors. Keep track of boxes and digital copies, what you have finished, who borrowed what, and let scripts fill in the details from Steam.</p>
+        <div class="actions">
+          <a class="button button-primary" href="https://github.com/askowron/GameCatalog/releases/latest">Download for Windows</a>
+          <a class="button button-secondary" href="https://github.com/askowron/GameCatalog">Source code on GitHub</a>
+        </div>
+        <p class="hero-note">Free and open source (GPL-3.0). Windows 10 and 11.</p>
+      </div>
+
+      <figure class="app-window">
+        <img src="images/main-window.png" width="1266" height="793"
+             alt="GameCatalog main window: a list of games on the left and the details of The Witcher 3 on the right, with its cover below the list.">
+      </figure>
+    </div>
+  </header>
+
+  <main>
+    <section class="wrap" aria-labelledby="features-title">
+      <h2 id="features-title">What it does</h2>
+      <p class="lede">A desktop catalogue in the spirit of Ant Movie Catalog, rebuilt for games. Your catalogue is a single file you can copy, back up and keep forever.</p>
+      <ul class="features">
+        <li>
+          <h3>Describe each game</h3>
+          <p>Developer, publisher, platform, store, release year, genre, PEGI, playtime, your rating and the critics', plus fields of your own.</p>
+        </li>
+        <li>
+          <h3>Track your progress</h3>
+          <p>Mark games as backlog, playing, paused, finished, 100% or dropped, with the date you finished them.</p>
+        </li>
+        <li>
+          <h3>Covers and DLC</h3>
+          <p>Add a cover to every game and list its expansions, season passes and soundtracks underneath.</p>
+        </li>
+        <li>
+          <h3>Fetch the details</h3>
+          <p>Built-in scripts look a game up on Steam, IGDB, Wikipedia or GRY-Online.pl and let you pick what to copy in.</p>
+        </li>
+        <li>
+          <h3>Find anything fast</h3>
+          <p>Sort, group and search the list, switch to cover thumbnails, or open a game card you can print or copy.</p>
+        </li>
+        <li>
+          <h3>Loans and statistics</h3>
+          <p>See who borrowed which game and when, and how your collection splits by platform, status and year.</p>
+        </li>
+      </ul>
+    </section>
+
+    <section class="wrap" aria-labelledby="screens-title">
+      <h2 id="screens-title">See it in action</h2>
+      <div class="screens">
+        <figure>
+          <img src="images/game-card.png" width="1266" height="793" loading="lazy"
+               alt="The HTML game card for The Witcher 3 with its cover, details and the list of DLC.">
+          <figcaption>The game card, built from an HTML template you can edit.</figcaption>
+        </figure>
+        <figure>
+          <img src="images/thumbnails.png" width="1266" height="793" loading="lazy"
+               alt="The collection shown as a grid of cover thumbnails.">
+          <figcaption>The whole collection as cover thumbnails.</figcaption>
+        </figure>
+      </div>
+    </section>
+
+    <section class="amc" aria-labelledby="amc-title">
+      <div class="wrap amc-grid">
+        <h2 id="amc-title">Coming from Ant Movie Catalog?</h2>
+        <div>
+          <p>GameCatalog follows AMC closely: the same main window, toolbar icon themes, grouping, HTML templates and the idea of scripts that fetch data from the web.</p>
+          <p>Import your AMC XML catalogue and its fields are mapped to their game counterparts. CSV files and folders of games can be imported too.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="wrap" aria-labelledby="extend-title">
+      <h2 id="extend-title">Make it yours</h2>
+      <ul class="extend">
+        <li>
+          <h3>Scripts</h3>
+          <p>Write C# scripts that fetch or change game data. Start from the Steam, IGDB, Wikipedia and GRY-Online.pl samples.</p>
+          <a href="https://github.com/askowron/GameCatalog/tree/master/src/GameCatalog.Scripting/Samples">Browse the sample scripts</a>
+        </li>
+        <li>
+          <h3>Plugins</h3>
+          <p>Add importers, exporters, commands and side panels. Each plugin runs in isolation, so a broken one never takes the app down.</p>
+          <a href="https://github.com/askowron/GameCatalog/blob/master/samples/GameCatalog.Plugin.Sample/README.md">Read the plugin guide</a>
+        </li>
+        <li>
+          <h3>Translations</h3>
+          <p>The app is in English and Polish. Export a translation template from the Help menu and add your language.</p>
+          <a href="https://github.com/askowron/GameCatalog/blob/master/CONTRIBUTING.md#translations">How to translate</a>
+        </li>
+      </ul>
+    </section>
+
+    <section class="wrap get" aria-labelledby="get-title">
+      <h2 id="get-title">Get GameCatalog</h2>
+      <dl>
+        <dt>System</dt>
+        <dd>Windows 10 or 11</dd>
+        <dt>Runtime</dt>
+        <dd><a href="https://dotnet.microsoft.com/download/dotnet/10.0">.NET 10 Desktop Runtime</a></dd>
+        <dt>Game card</dt>
+        <dd>Microsoft Edge WebView2 Runtime, already part of Windows 11</dd>
+        <dt>Install</dt>
+        <dd>Unpack the ZIP anywhere and run GameCatalog.App.exe</dd>
+      </dl>
+      <a class="button button-primary" href="https://github.com/askowron/GameCatalog/releases/latest">Download the latest release</a>
+    </section>
+  </main>
+
+  <footer>
+    <div class="wrap">
+      <p>GameCatalog by Adam Skowroński, released under the <a href="https://github.com/askowron/GameCatalog/blob/master/LICENSE">GNU GPL v3</a>. Based on <a href="https://www.antp.be/software/moviecatalog/">Ant Movie Catalog</a> by Antoine Potten.</p>
+      <p>Game titles and covers in the screenshots belong to their publishers.</p>
+    </div>
+  </footer>
+</body>
+</html>
