@@ -22,7 +22,7 @@ Interfejs po polsku i angielsku (domyślnie język systemu).*
 |---|---|
 | ![HTML game card](docs/images/game-card.png) | ![Thumbnails](docs/images/thumbnails.png) |
 
-<sub>Demo catalog; the covers are generated placeholders.</sub>
+<sub>Demo catalog. Game covers and titles are trademarks of their respective publishers, shown for illustration only.</sub>
 
 ## Features
 
